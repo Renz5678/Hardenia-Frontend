@@ -58,7 +58,7 @@ export default function Status() {
     const fetchWeather = async (lat, lon) => {
         try {
             const response = await fetch(
-                `http://localhost:8080/api/weather/coordinates?lat=${lat}&lng=${lon}`
+                `https://flower-backend-latest-8vkl.onrender.com/api/weather/coordinates?lat=${lat}&lng=${lon}`
             );
 
             if (!response.ok)
