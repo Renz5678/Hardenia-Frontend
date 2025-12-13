@@ -1,0 +1,16 @@
+.sideColumn {
+    height: 100%;
+    flex: 1;
+}
+
+.middleColumn {
+    height: 100%;
+    flex: 2;
+}
+
+.sideColumn,
+.middleColumn {
+    padding: 0.5rem;
+    position: relative;
+    padding-top: 0;
+}

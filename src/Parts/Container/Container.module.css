@@ -1,0 +1,35 @@
+.container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+}
+
+.spaceWrapper {
+    width: 100%;
+    height: 15%;
+}
+
+@media (max-width: 1024px) and (orientation: landscape) {
+    .spaceWrapper {
+        height: 21%;
+    }
+}
+
+@media (max-width: 769px) and (orientation: portrait) {
+    .spaceWrapper {
+        height: 11%;
+    }
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+    .spaceWrapper {
+        height: 30%;
+    }
+}
+
+
+@media (max-width: 480px) and (orientation: portrait) {
+    .spaceWrapper {
+        height: 15%; /* Add this if needed */
+    }
+}

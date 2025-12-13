@@ -1,0 +1,8 @@
+.taskPosting {
+    height: 70%;
+    width: 100%;
+    background-image: url("Sign.png");
+    background-size: cover;
+    background-repeat: no-repeat;
+    z-index: 1000;
+}

@@ -1,0 +1,14 @@
+.tasks {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    bottom: 5rem;
+    left: 1rem;
+}
+
+.tasks img {
+    width: 20rem;
+    height: 57vh;
+}

@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
+
+.grid {
+    background-image: url("PlantGrid.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    width: 65%;
+    height: 65%;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 20%;
+    left: 17.5%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 1.2rem;
+    place-items: center;
+    padding: 2rem;
+}
+
+.box {
+    font-family: "Architects Daughter", cursive;
+    height: 100%;
+    width: 100%;
+    border-radius: 1rem;
+    background: #4f7296;
+    transition: all steps(4) 0.3s;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    font-weight: 900;
+}
+
+.box:hover {
+    transform: scale(1.25);
+    box-shadow:
+            0 0 0 2px #6b9bc3,
+            0 0 0 4px #4a6b8a,
+            0 0 0 6px #3a5a7a; /* pixelated border effect */
+}
