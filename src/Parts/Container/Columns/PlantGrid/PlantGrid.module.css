@@ -24,8 +24,8 @@
     height: 100%;
     width: 100%;
     border-radius: 1rem;
-    background: #4f7296;
-    transition: all steps(4) 0.3s;
+    /*background: #4f7296;*/
+    transition: all steps(4) 0.18s;
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
@@ -34,12 +34,13 @@
     align-items: center;
     font-size: 2rem;
     font-weight: 900;
+    color: #dfe7ec;
 }
 
 .box:hover {
-    transform: scale(1.25);
+    transform: scale(1.15);
     box-shadow:
-            0 0 0 2px #6b9bc3,
-            0 0 0 4px #4a6b8a,
-            0 0 0 6px #3a5a7a; /* pixelated border effect */
+            0 0 0 2px #e38a31,
+            0 0 0 4px #603308,
+            0 0 0 6px #7e4307; /* pixelated border effect */
 }

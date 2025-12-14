@@ -4,7 +4,7 @@ export default function TaskPosting() {
     return (
         <>
             <div className={styles.taskPosting}>
-
+                Hello lang
             </div>
         </>
     );

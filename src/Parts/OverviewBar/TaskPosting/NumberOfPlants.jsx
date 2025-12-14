@@ -6,7 +6,7 @@ export default function NumberOfPlants() {
 
     const getNumberOfPlants = async () => {
         try {
-            const response = await fetch("http://localhost:8080/flowers/number_of_flowers");
+            const response = await fetch("https://flower-backend-latest-8vkl.onrender.com/flowers/number_of_flowers");
 
             if (!response.ok)
                 throw new Error("Flower details cannot be found!");

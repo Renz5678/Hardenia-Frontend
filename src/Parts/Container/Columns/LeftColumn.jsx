@@ -7,7 +7,7 @@ export default function LeftColumn() {
         <>
             <div className={styles.sideColumn}>
                 <Weather />
-                <Tasks />
+                {/*<Tasks />*/}
             </div>
         </>
     )
