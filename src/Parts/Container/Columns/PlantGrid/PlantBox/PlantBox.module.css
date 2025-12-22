@@ -47,3 +47,108 @@
             0 0 0 4px #603308,
             0 0 0 6px #7e4307;
 }
+
+.draggingOver {
+    border: 3px dashed #4CAF50 !important;
+    background-color: rgba(76, 175, 80, 0.1);
+}
+
+/* Different style when dragging over empty box */
+.emptyDraggingOver {
+    border: 3px dashed #f44336 !important;
+    background-color: rgba(244, 67, 54, 0.1);
+}
+
+.actionFeedback {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: fadeInOut 2s ease;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.actionIcon {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+/* Warning modal styles */
+.warningModal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(96, 51, 8, 0.57);
+    border-radius: 1rem;
+    z-index: 15;
+    pointer-events: none;
+    animation: modalFadeIn 0.3s ease;
+}
+
+.warningContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: modalBounce 0.5s ease;
+    text-align: center;
+}
+
+.warningContent p {
+    margin: 0;
+    font-size: 1rem;
+    color: #fff;  /* Changed to white for visibility against dark background */
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);  /* Added text shadow for better readability */
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.7);
+    }
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+    40% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    80% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.7);
+    }
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes modalBounce {
+    0% {
+        transform: scale(0.5);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
