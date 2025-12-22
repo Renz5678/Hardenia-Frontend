@@ -5,8 +5,11 @@ import sunflower from '../FlowerPhotos/Sunflower.png'
 import tulips from '../FlowerPhotos/Tulips.png'
 import {useState, useRef, useEffect} from "react";
 
-export default function PlantForm({ onClose, gridPosition }) { // Add gridPosition prop
+export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
     const formRef = useRef(null);
+
+    // API Base URL - easy to switch between localhost and production
+    const API_BASE_URL = "http://localhost:8080";
 
     const flowerImages = {
         "rose": rose,
@@ -24,6 +27,7 @@ export default function PlantForm({ onClose, gridPosition }) { // Add gridPositi
 
     const flowerOptions = ["Rose", "Sunflower", "Tulips"];
     const colors = ["Red", "Yellow", "Pink", "White", "Purple"];
+    const growthStages = ["Seed", "Seedling", "Budding", "Wilting", "Blooming"];
 
     const [plantName, setPlantName] = useState("New Plant")
     const [inputBoxValue, setInputBoxValue] = useState("")
@@ -31,12 +35,15 @@ export default function PlantForm({ onClose, gridPosition }) { // Add gridPositi
     const [plantImage, setPlantImage] = useState(placeholder);
     const [color, setColor] = useState("");
     const [colorInImgBox, setColorInImgBox] = useState("#FFFFFF")
+    const [growthStage, setGrowthStage] = useState("");
+    const [height, setHeight] = useState("");
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
     // Modal state
     const [showModal, setShowModal] = useState(false);
-    const [modalType, setModalType] = useState(""); // "success" or "error"
+    const [modalType, setModalType] = useState("");
     const [modalMessage, setModalMessage] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Handle click outside
     useEffect(() => {
@@ -52,17 +59,83 @@ export default function PlantForm({ onClose, gridPosition }) { // Add gridPositi
         };
     }, [onClose]);
 
-    const addFlowerToDatabase = async () => {
-        // Validate all fields
-        if (!plantName || !plantType || !color || !date) {
-            setModalType("error");
-            setModalMessage("Please fill in all fields!");
-            setShowModal(true);
+    const addFlowerGrowthDetails = async (flowerId) => {
+        // Fixed payload structure - matches backend DTO
+        const growthPayload = {
+            flower_id: flowerId,              // Direct field, not nested
+            stage: growthStage.toUpperCase(), // Uppercase enum name
+            height: parseFloat(height),
+            colorChanges: false,
+            notes: ""
+        };
 
-            // Reload after showing error
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+        console.log("Sending growth payload:", JSON.stringify(growthPayload, null, 2));
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/growth`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(growthPayload)
+            });
+
+            const responseText = await response.text();
+            console.log("Growth response status:", response.status);
+            console.log("Growth response body:", responseText);
+
+            if (!response.ok) {
+                throw new Error(`Growth details failed: ${responseText}`);
+            }
+
+            const data = responseText ? JSON.parse(responseText) : null;
+            console.log("Growth details sent successfully!", data);
+            return data;
+
+        } catch (error) {
+            console.error("Growth details error:", error);
+            throw error;
+        }
+    }
+
+    const resetForm = () => {
+        setPlantName("New Plant");
+        setInputBoxValue("");
+        setPlantType("");
+        setPlantImage(placeholder);
+        setColor("");
+        setColorInImgBox("#FFFFFF");
+        setGrowthStage("");
+        setHeight("");
+        setDate(new Date().toISOString().split('T')[0]);
+    };
+
+    const showError = (message) => {
+        setModalType("error");
+        setModalMessage(message);
+        setShowModal(true);
+    };
+
+    const addFlowerToDatabase = async () => {
+        // Prevent double submission
+        if (isSubmitting) return;
+
+        // Validate all fields
+        if (!plantName || !plantType || !color || !growthStage || !height || !date) {
+            showError("Please fill in all fields!");
+            return;
+        }
+
+        const heightValue = parseFloat(height);
+        if (isNaN(heightValue) || heightValue <= 0) {
+            showError("Height must be a positive number!");
+            return;
+        }
+
+        // Check decimal places (max 2)
+        const decimalPlaces = (height.split('.')[1] || '').length;
+        if (decimalPlaces > 2) {
+            showError("Height can have a maximum of 2 decimal places!");
             return;
         }
 
@@ -70,14 +143,18 @@ export default function PlantForm({ onClose, gridPosition }) { // Add gridPositi
             flowerName: plantName,
             species: plantType,
             color: color.toUpperCase(),
+            growthStage: growthStage.toUpperCase(),
+            height: parseFloat(height),
             plantingDate: date + "T00:00:00.000Z",
-            gridPosition: gridPosition // Add this line
+            gridPosition: gridPosition
         };
 
-        console.log("Sending payload:", JSON.stringify(payload, null, 2));
+        console.log("Sending flower payload:", JSON.stringify(payload, null, 2));
+
+        setIsSubmitting(true);
 
         try {
-            const response = await fetch("https://flower-backend-latest-8vkl.onrender.com/flowers", {
+            const response = await fetch(`${API_BASE_URL}/flowers`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -86,34 +163,49 @@ export default function PlantForm({ onClose, gridPosition }) { // Add gridPositi
             });
 
             const responseText = await response.text();
-            console.log("Response status:", response.status);
-            console.log("Response body:", responseText);
+            console.log("Flower response status:", response.status);
+            console.log("Flower response body:", responseText);
 
             if (!response.ok) {
                 throw new Error(`Server error: ${response.status} - ${responseText}`);
             }
 
             const data = JSON.parse(responseText);
-            console.log("Success:", data);
+            console.log("Flower created successfully:", data);
 
+            const flowerId = data.flower_id;
+
+            // Add growth details
+            try {
+                await addFlowerGrowthDetails(flowerId);
+            } catch (growthError) {
+                console.error("Growth details failed, but flower was created:", growthError);
+                // Don't fail the whole operation if growth fails
+            }
+
+            // Show success message
             setModalType("success");
             setModalMessage(`${plantName} has been added successfully!`);
             setShowModal(true);
 
-            // Reload after success
+            // Wait 1.5 seconds, then close and notify parent
             setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+                setShowModal(false);
+                resetForm();
+
+                // Notify parent component that a plant was added
+                if (onPlantAdded) {
+                    onPlantAdded(data);
+                }
+
+                onClose();
+            }, 1500);
+
         } catch (error) {
             console.error("Full error:", error);
-            setModalType("error");
-            setModalMessage("Error adding flower: " + error.message);
-            setShowModal(true);
-
-            // Reload after error
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+            showError("Error adding flower: " + error.message);
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
@@ -126,7 +218,7 @@ export default function PlantForm({ onClose, gridPosition }) { // Add gridPositi
                     <h1>{plantName === "" ? ("New Plant") : (plantName)}</h1>
                     <div className={styles.inputContainer}>
                         <div className={styles.imageContainer}>
-                            <img src={plantImage}/>
+                            <img src={plantImage} alt={plantType || "placeholder"}/>
                             <p>Color</p>
                             <div className={styles.colorBox}
                                  style={{background: colorInImgBox}}></div>
@@ -163,7 +255,6 @@ export default function PlantForm({ onClose, gridPosition }) { // Add gridPositi
                                     onChange={(event) => {
                                         setColor(event.target.value)
                                         setColorInImgBox(colorOptions[event.target.value])
-                                        console.log(event.target.value);
                                     }}>
 
                                 <option value="">Select a color</option>
@@ -175,6 +266,33 @@ export default function PlantForm({ onClose, gridPosition }) { // Add gridPositi
                                 ))}
                             </select>
 
+                            <h2>Growth Stage</h2>
+                            <select value={growthStage}
+                                    onChange={(event) => {
+                                        setGrowthStage(event.target.value)
+                                    }}>
+
+                                <option value="">Select a growth stage</option>
+
+                                {growthStages.map((stage) => (
+                                    <option key={stage} value={stage.toLowerCase()}>
+                                        {stage}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <h2>Height (cm)</h2>
+                            <input
+                                value={height}
+                                maxLength={5}
+                                type={"number"}
+                                step={"0.01"}
+                                min={"0.01"}
+                                placeholder={"e.g., 25.50"}
+                                onChange={(event) => {
+                                    setHeight(event.target.value)
+                                }}/>
+
                             <h2>Planting Date</h2>
                             <input type={"date"}
                                    value={date}
@@ -182,7 +300,12 @@ export default function PlantForm({ onClose, gridPosition }) { // Add gridPositi
                         </div>
                     </div>
 
-                    <button onClick={addFlowerToDatabase}>Add Flower</button>
+                    <button
+                        onClick={addFlowerToDatabase}
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? "Adding..." : "Add Flower"}
+                    </button>
                 </div>
             </div>
 

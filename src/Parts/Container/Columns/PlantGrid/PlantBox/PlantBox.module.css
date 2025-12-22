@@ -3,23 +3,47 @@
     height: 100%;
     width: 100%;
     border-radius: 1rem;
-    /*background: #4f7296;*/
     transition: all steps(4) 0.18s;
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
     font-size: 2rem;
     font-weight: 900;
     color: #dfe7ec;
+    padding: 4px;
+    cursor: pointer;
 }
 
-.plantBox:hover {
+.plantBox h1 {
+    font-size: 1rem;
+}
+
+.plantBox img {
+    height: 100%;
+}
+
+.plantBox p {
+    margin-top: 20%;
+}
+
+/* Hover effect - only when NOT enlarged */
+.plantBox:hover:not(.enlarged) {
     transform: scale(1.15);
     box-shadow:
             0 0 0 2px #e38a31,
             0 0 0 4px #603308,
-            0 0 0 6px #7e4307; /* pixelated border effect */
+            0 0 0 6px #7e4307;
+}
+
+/* Clicked/Enlarged state - same scale as hover but stays */
+.plantBox.enlarged {
+    transform: scale(1.15);
+    z-index: 10;
+    box-shadow:
+            0 0 0 2px #e38a31,
+            0 0 0 4px #603308,
+            0 0 0 6px #7e4307;
 }
