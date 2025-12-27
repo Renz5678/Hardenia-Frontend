@@ -1,7 +1,9 @@
 import styles from './PlantBox.module.css'
-import rose from '../FlowerPhotos/Rose.png'
 import sunflower from '../FlowerPhotos/Sunflower.png'
-import tulips from '../FlowerPhotos/Tulips.png'
+import anthurium from '../FlowerPhotos/Anthurium.png'
+import hibiscus from '../FlowerPhotos/Hibiscus.png'
+import kalachuci from '../FlowerPhotos/Kalachuchi.png'
+import zinnias from '../FlowerPhotos/Zinnias.png'
 import { useState, useRef, useEffect } from 'react'
 
 // Import the active state images
@@ -9,23 +11,30 @@ import PouringWateringCan from './Tools/WateringCan/wc pouring.png'
 import OpenScissors from './Tools/Pruning/open.png'
 import SprayingSprayCan from './Tools/Pesticide/spray bottle spraying.png'
 import DirtyShovel from './Tools/Repot/shovel (dirty).png'
+import Sun from './Tools/Sun.png'
+import PlantDetails from "./PlantDetails/PlantDetails.jsx";
 
 export default function PlantBox({ plant, index, onClick, onToolUse }) {
     const [isEnlarged, setIsEnlarged] = useState(false);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const [currentAction, setCurrentAction] = useState(null);
     const [showEmptyWarning, setShowEmptyWarning] = useState(false);
+    const [showDetails, setShowDetails] = useState(false);
     const boxRef = useRef(null);
 
     const getFlowerImage = (flowerName) => {
         console.log(plant.flowerName)
         switch(flowerName.toLowerCase()) {
-            case 'rose':
-                return rose;
+            case 'anthurium':
+                return anthurium;
             case 'sunflower':
                 return sunflower;
-            case 'tulips':
-                return tulips;
+            case 'hibiscus':
+                return hibiscus;
+            case 'kalachuchi':
+                return kalachuci;
+            case 'zinnias':
+                return zinnias;
             default:
                 return null;
         }
@@ -76,7 +85,7 @@ export default function PlantBox({ plant, index, onClick, onToolUse }) {
     };
 
     // Perform the action based on tool type
-    const performAction = (toolType, toolId) => {
+    const performAction = (toolType) => {
         setCurrentAction(toolType);
 
         // Call parent callback if provided
@@ -106,6 +115,10 @@ export default function PlantBox({ plant, index, onClick, onToolUse }) {
                 console.log(`Repotting ${plant.flowerName}...`);
                 // Add your repotting logic here
                 break;
+            case 'sun':
+                console.log(`Giving sunlight to ${plant.flowerName}...`);
+                // Add your sun exposure logic here
+                break;
             default:
                 console.log('Unknown tool');
         }
@@ -121,20 +134,29 @@ export default function PlantBox({ plant, index, onClick, onToolUse }) {
         function handleClickOutside(event) {
             if (boxRef.current && !boxRef.current.contains(event.target)) {
                 setIsEnlarged(false);
+                setShowDetails(false);
             }
         }
 
-        if (isEnlarged) {
+        if (isEnlarged || showDetails) {
             document.addEventListener('mousedown', handleClickOutside);
         }
 
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isEnlarged]);
+    }, [isEnlarged, showDetails]);
 
     const handleClick = () => {
-        setIsEnlarged(!isEnlarged);
+        if (plant) {
+            // If there's a plant, show the details div
+            setShowDetails(!showDetails);
+            setIsEnlarged(!isEnlarged);
+        } else {
+            // If empty, trigger parent onClick (to open form)
+            setIsEnlarged(!isEnlarged);
+        }
+
         if (onClick) {
             onClick();
         }
@@ -149,55 +171,59 @@ export default function PlantBox({ plant, index, onClick, onToolUse }) {
             fertilize: null,                   // No other state, keep default
             prune: OpenScissors,              // Uses active state
             spray: SprayingSprayCan,          // Uses active state
-            repot: DirtyShovel                // Uses active state
+            repot: DirtyShovel,               // Uses active state
+            sun: Sun                          // Sun icon
         };
 
         return icons[currentAction];
     };
 
     return (
-        <div
-            ref={boxRef}
-            className={`${styles.plantBox} ${isEnlarged ? styles.enlarged : ''} ${isDraggingOver ? styles.draggingOver : ''} ${!plant && isDraggingOver ? styles.emptyDraggingOver : ''}`}
-            onClick={handleClick}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            style={{
-                position: 'relative',
-                boxShadow: isDraggingOver && plant ? '0 0 20px rgba(0, 255, 0, 0.5)' :
-                    isDraggingOver && !plant ? '0 0 20px rgba(255, 0, 0, 0.5)' : undefined,
-                transition: 'box-shadow 0.3s ease'
-            }}
-        >
-            {plant ? (
-                <>
-                    <h1>{plant.flowerName}</h1>
-                    <img src={getFlowerImage(plant.species)} alt={plant.flowerName} />
+        <>
+            <div
+                ref={boxRef}
+                className={`${styles.plantBox} ${isEnlarged ? styles.enlarged : ''} ${isDraggingOver ? styles.draggingOver : ''} ${!plant && isDraggingOver ? styles.emptyDraggingOver : ''}`}
+                onClick={handleClick}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                style={{
+                    position: 'relative',
+                    boxShadow: isDraggingOver && plant ? '0 0 20px rgba(0, 255, 0, 0.5)' :
+                        isDraggingOver && !plant ? '0 0 20px rgba(255, 0, 0, 0.5)' : undefined,
+                    transition: 'box-shadow 0.3s ease'
+                }}
+            >
+                {plant ? (
+                    <>
+                        <img src={getFlowerImage(plant.species)} alt={plant.flowerName} />
 
-                    {/* Show action feedback with tool image only */}
-                    {currentAction && getActionIcon() && (
-                        <div className={styles.actionFeedback}>
-                            <img
-                                src={getActionIcon()}
-                                alt={currentAction}
-                                className={styles.actionIcon}
-                            />
+                        {/* Show action feedback with tool image only */}
+                        {currentAction && getActionIcon() && (
+                            <div className={styles.actionFeedback}>
+                                <img
+                                    src={getActionIcon()}
+                                    alt={currentAction}
+                                    className={styles.actionIcon}
+                                />
+                            </div>
+                        )}
+                    </>
+                ) : (
+                    <p>+</p>
+                )}
+
+                {/* Warning modal for empty box */}
+                {showEmptyWarning && (
+                    <div className={styles.warningModal}>
+                        <div className={styles.warningContent}>
+                            <p>No plant here!</p>
                         </div>
-                    )}
-                </>
-            ) : (
-                <p>+</p>
-            )}
-
-            {/* Warning modal for empty box */}
-            {showEmptyWarning && (
-                <div className={styles.warningModal}>
-                    <div className={styles.warningContent}>
-                        <p>No plant here!</p>
                     </div>
-                </div>
-            )}
-        </div>
+                )}
+            </div>
+
+            {showDetails && plant && <PlantDetails plant={plant}/>}
+        </>
     )
 }

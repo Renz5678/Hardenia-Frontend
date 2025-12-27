@@ -1,0 +1,12 @@
+.flowerIcon {
+    background-image: url("FlowerBackground.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: 5rem;
+    width: 6rem;
+    border: #603308 2px solid;
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

@@ -1,56 +1,73 @@
 import styles from './TaskBox.module.css'
-import {useState} from "react";
+import { useState, useEffect } from "react";
+import TaskModal from './TaskModal/TaskModal.jsx'; // Import the new modal component
 
 export default function TaskBox({ flower }) {
-    const [isHovered, setIsHovered] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [tasks, setTasks] = useState([]);
-    const [numberOfTasks, setNumberOfTasks] = useState(0)
-    const getTasksForFlower = async () => {
-        try {
-            const response = await fetch(`http://localhost:8080/maintenance/flower/${flower.flower_id}`)
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-            if (!response.ok)
-                throw new Error("Failed to fetch tasks")
+    const handleClick = async () => {
+        setIsModalOpen(true);
+
+        // Fetch tasks when modal opens
+        if (tasks.length === 0 && !isLoading) {
+            await fetchTasks();
+        }
+    };
+
+    const fetchTasks = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            const response = await fetch(
+                `https://flower-backend-latest-8vkl.onrender.com/maintenance/flower/${flower.flower_id}`
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch tasks");
+            }
 
             const data = await response.json();
+            console.log("Tasks fetched:", data);
             setTasks(data);
-            setNumberOfTasks(data.length);
-
         } catch (error) {
-            console.log(error);
+            console.error("Error fetching tasks:", error);
+            setError(error.message);
+        } finally {
+            setIsLoading(false);
         }
-    }
+    };
 
-    getTasksForFlower();
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+    };
+
+    const handleTaskUpdate = () => {
+        // Refetch tasks when a task is updated
+        fetchTasks();
+    };
+
     return (
         <>
             <div
                 className={styles.taskBox}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
+                onClick={handleClick}
             >
                 <h2>{flower.flowerName}</h2>
             </div>
 
-            {isHovered && (
-                <div className={styles.dropdown}>
-                    {numberOfTasks === 0 ? (
-                        <>
-                            <h2>{flower.flowerName} Tasks</h2>
-                            <p>No tasks available</p>
-                        </>
-                    ) : (
-                        <div>
-                            <h2>Tasks for {flower.flowerName}</h2>
-                            {tasks.map((task, index) => (
-                                <div key={task.id || index}>
-                                    <p>{task.name || task.description}</p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+            {isModalOpen && (
+                <TaskModal
+                    flower={flower}
+                    tasks={tasks}
+                    isLoading={isLoading}
+                    error={error}
+                    onClose={handleCloseModal}
+                    onTaskUpdate={handleTaskUpdate}
+                />
             )}
         </>
-    )
+    );
 }

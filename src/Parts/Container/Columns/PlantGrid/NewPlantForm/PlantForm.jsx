@@ -1,48 +1,88 @@
 import styles from './PlantForm.module.css'
 import placeholder from '../FlowerPhotos/smiley.png'
-import rose from '../FlowerPhotos/Rose.png'
 import sunflower from '../FlowerPhotos/Sunflower.png'
-import tulips from '../FlowerPhotos/Tulips.png'
+import anthurium from '../FlowerPhotos/Anthurium.png'
+import hibiscus from '../FlowerPhotos/Hibiscus.png'
+import kalachuchi from '../FlowerPhotos/Kalachuchi.png'
+import zinnias from '../FlowerPhotos/Zinnias.png'
 import {useState, useRef, useEffect} from "react";
+
+// Flower care templates - different frequencies for each species
+const FLOWER_CARE_TEMPLATES = {
+    sunflower: {
+        waterFrequencyDays: 2,
+        fertilizeFrequencyDays: 14,
+        pruneFrequencyDays: 21
+    },
+    anthurium: {
+        waterFrequencyDays: 3,
+        fertilizeFrequencyDays: 30,
+        pruneFrequencyDays: 60
+    },
+    hibiscus: {
+        waterFrequencyDays: 1,
+        fertilizeFrequencyDays: 7,
+        pruneFrequencyDays: 30
+    },
+    kalachuchi: {
+        waterFrequencyDays: 4,
+        fertilizeFrequencyDays: 21,
+        pruneFrequencyDays: 45
+    },
+    zinnias: {
+        waterFrequencyDays: 2,
+        fertilizeFrequencyDays: 14,
+        pruneFrequencyDays: 28
+    }
+};
+
+const FLOWER_IMAGES = {
+    sunflower,
+    anthurium,
+    hibiscus,
+    kalachuchi,
+    zinnias
+};
+
+const COLOR_OPTIONS = {
+    red: "#ff0000",
+    yellow: "#ffff00",
+    pink: "#f15c7b",
+    white: "#ffffff",
+    purple: "#800080"
+};
+
+const FLOWER_OPTIONS = Object.keys(FLOWER_IMAGES).map(
+    flower => flower.charAt(0).toUpperCase() + flower.slice(1)
+);
+
+const COLORS = ["Red", "Yellow", "Pink", "White", "Purple"];
+const GROWTH_STAGES = ["Seed", "Seedling", "Budding", "Wilting", "Blooming"];
 
 export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
     const formRef = useRef(null);
-
-    // API Base URL - easy to switch between localhost and production
     const API_BASE_URL = "http://localhost:8080";
 
-    const flowerImages = {
-        "rose": rose,
-        "sunflower": sunflower,
-        "tulips": tulips
-    };
-
-    const colorOptions = {
-        "red": "#ff0000",
-        "yellow": "#ffff00",
-        "pink": "#f15c7b",
-        "white": "#ffffff",
-        "purple": "#800080"
-    };
-
-    const flowerOptions = ["Rose", "Sunflower", "Tulips"];
-    const colors = ["Red", "Yellow", "Pink", "White", "Purple"];
-    const growthStages = ["Seed", "Seedling", "Budding", "Wilting", "Blooming"];
-
-    const [plantName, setPlantName] = useState("New Plant")
-    const [inputBoxValue, setInputBoxValue] = useState("")
-    const [plantType, setPlantType] = useState("");
-    const [plantImage, setPlantImage] = useState(placeholder);
-    const [color, setColor] = useState("");
-    const [colorInImgBox, setColorInImgBox] = useState("#FFFFFF")
-    const [growthStage, setGrowthStage] = useState("");
-    const [height, setHeight] = useState("");
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    // Form state
+    const [formData, setFormData] = useState({
+        plantName: "New Plant",
+        inputBoxValue: "",
+        plantType: "",
+        plantImage: placeholder,
+        color: "",
+        colorInImgBox: "#FFFFFF",
+        growthStage: "",
+        height: "",
+        date: new Date().toISOString().split('T')[0]
+    });
 
     // Modal state
-    const [showModal, setShowModal] = useState(false);
-    const [modalType, setModalType] = useState("");
-    const [modalMessage, setModalMessage] = useState("");
+    const [modal, setModal] = useState({
+        show: false,
+        type: "",
+        message: ""
+    });
+
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Handle click outside
@@ -59,94 +99,179 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
         };
     }, [onClose]);
 
+    const updateFormData = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
     const addFlowerGrowthDetails = async (flowerId) => {
-        // Fixed payload structure - matches backend DTO
         const growthPayload = {
-            flower_id: flowerId,              // Direct field, not nested
-            stage: growthStage.toUpperCase(), // Uppercase enum name
-            height: parseFloat(height),
+            flower_id: flowerId,
+            stage: formData.growthStage.toUpperCase(),
+            height: parseFloat(formData.height),
             colorChanges: false,
             notes: ""
         };
 
-        console.log("Sending growth payload:", JSON.stringify(growthPayload, null, 2));
+        const response = await fetch(`${API_BASE_URL}/growth`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(growthPayload)
+        });
 
-        try {
-            const response = await fetch(`${API_BASE_URL}/growth`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(growthPayload)
-            });
-
+        if (!response.ok) {
             const responseText = await response.text();
-            console.log("Growth response status:", response.status);
-            console.log("Growth response body:", responseText);
-
-            if (!response.ok) {
-                throw new Error(`Growth details failed: ${responseText}`);
-            }
-
-            const data = responseText ? JSON.parse(responseText) : null;
-            console.log("Growth details sent successfully!", data);
-            return data;
-
-        } catch (error) {
-            console.error("Growth details error:", error);
-            throw error;
+            throw new Error(`Growth details failed: ${responseText}`);
         }
-    }
+
+        return response.text().then(text => text ? JSON.parse(text) : null);
+    };
+
+    // Helper function to retry API calls
+    const retryApiCall = async (apiCall, maxRetries = 3, delayMs = 300) => {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                return await apiCall();
+            } catch (error) {
+                if (attempt === maxRetries) throw error;
+                console.log(`Attempt ${attempt} failed, retrying in ${delayMs}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+            }
+        }
+    };
+
+    // Create maintenance tasks for the flower
+    const createMaintenanceTasks = async (flowerId, careTemplate, plantName) => {
+        const currentDate = new Date();
+        const tasks = [];
+
+        // Create watering task
+        const wateringDate = new Date(currentDate);
+        wateringDate.setDate(wateringDate.getDate() + careTemplate.waterFrequencyDays);
+
+        tasks.push({
+            flower_id: flowerId,
+            maintenanceType: "WATERING",
+            maintenanceDate: wateringDate.toISOString(),
+            notes: `Water ${plantName}`,
+            performedBy: "System"
+        });
+
+        // Create fertilizing task
+        const fertilizingDate = new Date(currentDate);
+        fertilizingDate.setDate(fertilizingDate.getDate() + careTemplate.fertilizeFrequencyDays);
+
+        tasks.push({
+            flower_id: flowerId,
+            maintenanceType: "FERTILIZING",
+            maintenanceDate: fertilizingDate.toISOString(),
+            notes: `Fertilize ${plantName}`,
+            performedBy: "System"
+        });
+
+        // Create pruning task
+        const pruningDate = new Date(currentDate);
+        pruningDate.setDate(pruningDate.getDate() + careTemplate.pruneFrequencyDays);
+
+        tasks.push({
+            flower_id: flowerId,
+            maintenanceType: "PRUNING",
+            maintenanceDate: pruningDate.toISOString(),
+            notes: `Prune ${plantName}`,
+            performedBy: "System"
+        });
+
+        console.log("Creating maintenance tasks:", tasks);
+
+        // Post each task to the API with retry logic
+        const taskPromises = tasks.map(async (task) => {
+            return retryApiCall(async () => {
+                const response = await fetch(`${API_BASE_URL}/maintenance`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(task)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Failed to create ${task.maintenanceType} task: ${errorText}`);
+                }
+
+                const result = await response.text().then(text => text ? JSON.parse(text) : null);
+                console.log(`${task.maintenanceType} task created:`, result);
+                return result;
+            });
+        });
+
+        // Wait for all tasks to be created
+        return Promise.all(taskPromises);
+    };
 
     const resetForm = () => {
-        setPlantName("New Plant");
-        setInputBoxValue("");
-        setPlantType("");
-        setPlantImage(placeholder);
-        setColor("");
-        setColorInImgBox("#FFFFFF");
-        setGrowthStage("");
-        setHeight("");
-        setDate(new Date().toISOString().split('T')[0]);
+        setFormData({
+            plantName: "New Plant",
+            inputBoxValue: "",
+            plantType: "",
+            plantImage: placeholder,
+            color: "",
+            colorInImgBox: "#FFFFFF",
+            growthStage: "",
+            height: "",
+            date: new Date().toISOString().split('T')[0]
+        });
     };
 
-    const showError = (message) => {
-        setModalType("error");
-        setModalMessage(message);
-        setShowModal(true);
+    const showModal = (type, message) => {
+        setModal({ show: true, type, message });
     };
 
-    const addFlowerToDatabase = async () => {
-        // Prevent double submission
-        if (isSubmitting) return;
+    const validateForm = () => {
+        const { plantName, plantType, color, growthStage, height, date } = formData;
 
-        // Validate all fields
         if (!plantName || !plantType || !color || !growthStage || !height || !date) {
-            showError("Please fill in all fields!");
-            return;
+            showModal("error", "Please fill in all fields!");
+            return false;
         }
 
         const heightValue = parseFloat(height);
         if (isNaN(heightValue) || heightValue <= 0) {
-            showError("Height must be a positive number!");
-            return;
+            showModal("error", "Height must be a positive number!");
+            return false;
         }
 
-        // Check decimal places (max 2)
         const decimalPlaces = (height.split('.')[1] || '').length;
         if (decimalPlaces > 2) {
-            showError("Height can have a maximum of 2 decimal places!");
-            return;
+            showModal("error", "Height can have a maximum of 2 decimal places!");
+            return false;
         }
 
+        return true;
+    };
+
+    const addFlowerToDatabase = async () => {
+        if (isSubmitting || !validateForm()) return;
+
+        // Get care template for selected flower species
+        const careTemplate = FLOWER_CARE_TEMPLATES[formData.plantType.toLowerCase()] || {
+            waterFrequencyDays: 3,
+            fertilizeFrequencyDays: 14,
+            pruneFrequencyDays: 30
+        };
+
+        const currentDate = new Date().toISOString();
+
         const payload = {
-            flowerName: plantName,
-            species: plantType,
-            color: color.toUpperCase(),
-            growthStage: growthStage.toUpperCase(),
-            height: parseFloat(height),
-            plantingDate: date + "T00:00:00.000Z",
-            gridPosition: gridPosition
+            flowerName: formData.plantName,
+            species: formData.plantType,
+            color: formData.color.toUpperCase(),
+            plantingDate: formData.date + "T00:00:00.000Z",
+            gridPosition: gridPosition,
+            waterFrequencyDays: careTemplate.waterFrequencyDays,
+            fertilizeFrequencyDays: careTemplate.fertilizeFrequencyDays,
+            pruneFrequencyDays: careTemplate.pruneFrequencyDays,
+            lastWateredDate: currentDate,
+            lastFertilizedDate: currentDate,
+            lastPrunedDate: currentDate,
+            autoScheduling: true
         };
 
         console.log("Sending flower payload:", JSON.stringify(payload, null, 2));
@@ -156,15 +281,11 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
         try {
             const response = await fetch(`${API_BASE_URL}/flowers`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
 
             const responseText = await response.text();
-            console.log("Flower response status:", response.status);
-            console.log("Flower response body:", responseText);
 
             if (!response.ok) {
                 throw new Error(`Server error: ${response.status} - ${responseText}`);
@@ -178,22 +299,30 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
             // Add growth details
             try {
                 await addFlowerGrowthDetails(flowerId);
+                console.log("Growth details added successfully");
             } catch (growthError) {
                 console.error("Growth details failed, but flower was created:", growthError);
-                // Don't fail the whole operation if growth fails
+            }
+
+            // Create maintenance tasks (with small delay to ensure flower is committed to DB)
+            try {
+                // Wait 500ms to ensure the flower transaction is committed
+                await new Promise(resolve => setTimeout(resolve, 500));
+                await createMaintenanceTasks(flowerId, careTemplate, formData.plantName);
+                console.log("Maintenance tasks created successfully");
+            } catch (maintenanceError) {
+                console.error("Maintenance tasks failed, but flower was created:", maintenanceError);
+                // Don't fail the entire operation if maintenance tasks fail
             }
 
             // Show success message
-            setModalType("success");
-            setModalMessage(`${plantName} has been added successfully!`);
-            setShowModal(true);
+            showModal("success", `${formData.plantName} has been added successfully with scheduled maintenance tasks!`);
 
             // Wait 1.5 seconds, then close and notify parent
             setTimeout(() => {
-                setShowModal(false);
+                setModal({ show: false, type: "", message: "" });
                 resetForm();
 
-                // Notify parent component that a plant was added
                 if (onPlantAdded) {
                     onPlantAdded(data);
                 }
@@ -203,47 +332,48 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
 
         } catch (error) {
             console.error("Full error:", error);
-            showError("Error adding flower: " + error.message);
+            showModal("error", "Error adding flower: " + error.message);
         } finally {
             setIsSubmitting(false);
         }
-    }
+    };
 
     return (
         <>
             <div className={styles.plantFormContainer}>
                 <div ref={formRef} className={styles.plantForm}>
-                    <span className={styles.close}
-                          onClick={onClose}>x</span>
-                    <h1>{plantName === "" ? ("New Plant") : (plantName)}</h1>
+                    <span className={styles.close} onClick={onClose}>x</span>
+                    <h1>{formData.plantName || "New Plant"}</h1>
+
                     <div className={styles.inputContainer}>
                         <div className={styles.imageContainer}>
-                            <img src={plantImage} alt={plantType || "placeholder"}/>
+                            <img src={formData.plantImage} alt={formData.plantType || "placeholder"}/>
                             <p>Color</p>
-                            <div className={styles.colorBox}
-                                 style={{background: colorInImgBox}}></div>
+                            <div className={styles.colorBox} style={{background: formData.colorInImgBox}}></div>
                         </div>
 
                         <div className={styles.inputs}>
                             <h2>Flower Name</h2>
-                            <input value={inputBoxValue}
-                                   maxLength={20}
-                                   placeholder={"max. 20 characters"}
-                                   onChange={(event) => {
-                                       setPlantName(event.target.value)
-                                       setInputBoxValue(event.target.value)
-                                   }}/>
+                            <input
+                                value={formData.inputBoxValue}
+                                maxLength={20}
+                                placeholder="max. 20 characters"
+                                onChange={(e) => {
+                                    updateFormData("plantName", e.target.value);
+                                    updateFormData("inputBoxValue", e.target.value);
+                                }}
+                            />
 
                             <h2>Type</h2>
-                            <select value={plantType}
-                                    onChange={(event) => {
-                                        setPlantType(event.target.value)
-                                        setPlantImage(flowerImages[event.target.value])
-                                    }}>
-
+                            <select
+                                value={formData.plantType}
+                                onChange={(e) => {
+                                    updateFormData("plantType", e.target.value);
+                                    updateFormData("plantImage", FLOWER_IMAGES[e.target.value]);
+                                }}
+                            >
                                 <option value="">Select a plant</option>
-
-                                {flowerOptions.map((flower) => (
+                                {FLOWER_OPTIONS.map((flower) => (
                                     <option key={flower} value={flower.toLowerCase()}>
                                         {flower}
                                     </option>
@@ -251,15 +381,15 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
                             </select>
 
                             <h2>Color</h2>
-                            <select value={color}
-                                    onChange={(event) => {
-                                        setColor(event.target.value)
-                                        setColorInImgBox(colorOptions[event.target.value])
-                                    }}>
-
+                            <select
+                                value={formData.color}
+                                onChange={(e) => {
+                                    updateFormData("color", e.target.value);
+                                    updateFormData("colorInImgBox", COLOR_OPTIONS[e.target.value]);
+                                }}
+                            >
                                 <option value="">Select a color</option>
-
-                                {colors.map((colorOption) => (
+                                {COLORS.map((colorOption) => (
                                     <option key={colorOption} value={colorOption.toLowerCase()}>
                                         {colorOption}
                                     </option>
@@ -267,14 +397,12 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
                             </select>
 
                             <h2>Growth Stage</h2>
-                            <select value={growthStage}
-                                    onChange={(event) => {
-                                        setGrowthStage(event.target.value)
-                                    }}>
-
+                            <select
+                                value={formData.growthStage}
+                                onChange={(e) => updateFormData("growthStage", e.target.value)}
+                            >
                                 <option value="">Select a growth stage</option>
-
-                                {growthStages.map((stage) => (
+                                {GROWTH_STAGES.map((stage) => (
                                     <option key={stage} value={stage.toLowerCase()}>
                                         {stage}
                                     </option>
@@ -283,46 +411,44 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
 
                             <h2>Height (cm)</h2>
                             <input
-                                value={height}
+                                value={formData.height}
                                 maxLength={5}
-                                type={"number"}
-                                step={"0.01"}
-                                min={"0.01"}
-                                placeholder={"e.g., 25.50"}
-                                onChange={(event) => {
-                                    setHeight(event.target.value)
-                                }}/>
+                                type="number"
+                                step="0.01"
+                                min="0.01"
+                                placeholder="e.g., 25.50"
+                                onChange={(e) => updateFormData("height", e.target.value)}
+                            />
 
                             <h2>Planting Date</h2>
-                            <input type={"date"}
-                                   value={date}
-                                   onChange={(event) => setDate(event.target.value)}/>
+                            <input
+                                type="date"
+                                value={formData.date}
+                                onChange={(e) => updateFormData("date", e.target.value)}
+                            />
                         </div>
                     </div>
 
-                    <button
-                        onClick={addFlowerToDatabase}
-                        disabled={isSubmitting}
-                    >
+                    <button onClick={addFlowerToDatabase} disabled={isSubmitting}>
                         {isSubmitting ? "Adding..." : "Add Flower"}
                     </button>
                 </div>
             </div>
 
             {/* Status Modal */}
-            {showModal && (
+            {modal.show && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>
                         <div className={styles.modalIcon}>
-                            {modalType === "success" ? "✓" : "✕"}
+                            {modal.type === "success" ? "✓" : "✕"}
                         </div>
                         <h3 className={styles.modalTitle}>
-                            {modalType === "success" ? "Success!" : "Error"}
+                            {modal.type === "success" ? "Success!" : "Error"}
                         </h3>
-                        <p className={styles.modalMessage}>{modalMessage}</p>
-                        {modalType === "error" && (
+                        <p className={styles.modalMessage}>{modal.message}</p>
+                        {modal.type === "error" && (
                             <button
-                                onClick={() => setShowModal(false)}
+                                onClick={() => setModal({ show: false, type: "", message: "" })}
                                 className={styles.modalButton}
                             >
                                 Close
@@ -332,5 +458,5 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
                 </div>
             )}
         </>
-    )
+    );
 }

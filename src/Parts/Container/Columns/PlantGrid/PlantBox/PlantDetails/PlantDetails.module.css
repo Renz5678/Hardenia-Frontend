@@ -1,0 +1,125 @@
+.plantDetails {
+    position: fixed;
+    right: 1rem;
+    top: 2rem;
+    width: 30%;
+    height: 50%;
+    background-image: url("PlantDetailsBG.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    font-family: "Architects Daughter", cursive;
+    gap: 10px;
+}
+
+.imageAndName {
+    width: 100%;
+    height: 27%;
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+
+.nameAndSpecies {
+    display: flex;
+    flex-direction: column;
+    width: -webkit-fill-available;
+    height: 100%;
+    font-size: 1.5rem;
+    font-weight: 750;
+}
+
+.growthBar {
+    width: 100%;
+    height: 35%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.growthBar h4 {
+    text-align: left;
+    width: 100%;
+    font-size: 1.2rem;
+}
+
+.loadingBar {
+    width: 90%;
+    height: 15%;
+    background: #dfe7ec;
+    margin-top: 4px;
+    border: #785028 1px solid;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+.loadingPart1,
+.loadingPart2,
+.loadingPart3,
+.loadingPart4,
+.loadingPart5 {
+    height: 100%;
+    width: 20%;
+    border: 2px solid #785028 ;
+}
+
+.loadingPart1 {
+    background: #ff5b6d;
+}
+
+.loadingPart2 {
+    background: #ff9d62;
+}
+
+.loadingPart3 {
+    background: #ebb04e;
+}
+
+.loadingPart4 {
+    background: #c8ed37;
+}
+
+.loadingPart5 {
+    background: #8fc83b;
+}
+
+.loadingCounter {
+    width: 90%;
+    display: flex;
+    flex-direction: row;
+}
+
+.loadingCounter p {
+    width: 20%;
+    text-align: right;
+    font-weight: 750;
+}
+
+.badgeContainer {
+    width: 100%;
+    height: 38%;
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.badge {
+    height: 100%;
+    width: 25%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+}
+
+.badge img {
+    width: 100%;
+    height: auto;
+}
+

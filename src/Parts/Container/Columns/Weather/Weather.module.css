@@ -24,3 +24,10 @@
     bottom: 2.3rem;
     color: #4f7296;
 }
+
+.sun {
+    position: absolute;
+    height: 15%;
+    top: 0;
+    right: 0;
+}

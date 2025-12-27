@@ -7,7 +7,6 @@ export default function RightColumn() {
         <>
             <div className={styles.sideColumn}>
                 <ToolBox/>
-                {/*<HarvestTrash />*/}
             </div>
         </>
     )

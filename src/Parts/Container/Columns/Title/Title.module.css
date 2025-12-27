@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
 
-
 .title {
     width: 100%;
     height: 25%;
@@ -11,20 +10,7 @@
 }
 
 .title img {
-    height: 100%;
-    position: absolute;
-}
-
-.header {
-    font-family: "Architects Daughter", cursive;
-    letter-spacing: 8px;
-    position: absolute;
-    top: 1.3rem;
-    text-align: center;
-    border-radius: 1rem;
-    font-size: 3rem;
-    background: #d57c2d;
-    z-index: 999;
-    width: 40%;
-    height: 50%;
+    height: 20%;
+    position: fixed;
+    top: 0;
 }

@@ -9,7 +9,7 @@ import ThunderStorm from './WeatherStatus/Thunderstorm.png'
 
 import styles from './Status.module.css'
 
-export default function Status() {
+export default function Status({ onWeatherUpdate }) {
     const [weatherImage, setWeatherImage] = useState(Cloudy);
     const [weather, setWeather] = useState("Cloudy");
     const [showWeatherDescription, setWeatherDescription] = useState(false);
@@ -26,6 +26,16 @@ export default function Status() {
         "THUNDERSTORM": ThunderStorm,
     };
 
+    const updateWeather = (condition, code) => {
+        setWeather(condition);
+        setWeatherImage(weatherImages[code]);
+        console.log(condition);
+        // Call the parent's callback function
+        if (onWeatherUpdate) {
+            onWeatherUpdate(condition);
+        }
+    };
+
     const getWeatherData = () => {
         const cached = localStorage.getItem("WeatherCache");
 
@@ -34,8 +44,7 @@ export default function Status() {
             const age = Date.now() - timestamp;
 
             if (age < CACHE_DURATION) {
-                setWeather(cachedWeather.condition);
-                setWeatherImage(weatherImages[cachedWeather.code]);
+                updateWeather(cachedWeather.condition, cachedWeather.code);
                 return;
             }
         }
@@ -73,8 +82,7 @@ export default function Status() {
             };
 
             localStorage.setItem("WeatherCache", JSON.stringify(cacheData));
-            setWeather(weatherData.condition);
-            setWeatherImage(weatherImages[weatherData.code]);
+            updateWeather(weatherData.condition, weatherData.code);
         } catch (error) {
             console.error(error);
         }
@@ -97,11 +105,11 @@ export default function Status() {
                 <>
                     <div className={styles.triangle}>
 
-                </div>
-                <div className={styles.tooltip}>
-                    {weather}
-                </div>
-                    </>
+                    </div>
+                    <div className={styles.tooltip}>
+                        {weather}
+                    </div>
+                </>
             )}
         </>
     )
