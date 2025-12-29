@@ -37,3 +37,18 @@
     border-right: 10px solid transparent;
     border-bottom: 10px solid #dfe7ec; /* Inner triangle (matches background) */
 }
+
+.taskBox {
+    background-image: url("TaskBoxBG.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    height: 8%;
+    width: auto;
+    padding: 0 0 0 1rem;
+}
+
+.taskBox h2 {
+    font-size: 0.9rem;
+}
