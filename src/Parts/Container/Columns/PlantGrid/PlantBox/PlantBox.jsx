@@ -4,6 +4,10 @@ import anthurium from '../FlowerPhotos/Anthurium.png'
 import hibiscus from '../FlowerPhotos/Hibiscus.png'
 import kalachuci from '../FlowerPhotos/Kalachuchi.png'
 import zinnias from '../FlowerPhotos/Zinnias.png'
+import cosmos from '../FlowerPhotos/Cosmos.png'
+import marigold from '../FlowerPhotos/Marigold.png'
+import sampaguita from '../FlowerPhotos/Sampaguita.png'
+import tulips from '../FlowerPhotos/Tulips.png'
 import { useState, useRef, useEffect } from 'react'
 
 // Import the active state images
@@ -13,6 +17,19 @@ import SprayingSprayCan from './Tools/Pesticide/spray bottle spraying.png'
 import DirtyShovel from './Tools/Repot/shovel (dirty).png'
 import Sun from './Tools/Sun.png'
 import PlantDetails from "./PlantDetails/PlantDetails.jsx";
+
+// Flower images mapping
+const FLOWER_IMAGES = {
+    sunflower,
+    anthurium,
+    hibiscus,
+    kalachuchi: kalachuci,
+    zinnias,
+    cosmos,
+    marigold,
+    sampaguita,
+    tulips
+};
 
 export default function PlantBox({ plant, index, onClick, onToolUse }) {
     const [isEnlarged, setIsEnlarged] = useState(false);
@@ -24,20 +41,8 @@ export default function PlantBox({ plant, index, onClick, onToolUse }) {
 
     const getFlowerImage = (flowerName) => {
         console.log(plant.flowerName)
-        switch(flowerName.toLowerCase()) {
-            case 'anthurium':
-                return anthurium;
-            case 'sunflower':
-                return sunflower;
-            case 'hibiscus':
-                return hibiscus;
-            case 'kalachuchi':
-                return kalachuci;
-            case 'zinnias':
-                return zinnias;
-            default:
-                return null;
-        }
+        const lowerCaseName = flowerName.toLowerCase();
+        return FLOWER_IMAGES[lowerCaseName] || null;
     }
 
     // Handle drag over - required to allow drop

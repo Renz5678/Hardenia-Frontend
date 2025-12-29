@@ -1,252 +1,45 @@
-/* Modal Overlay */
-.modalOverlay {
+.overlay {
     position: fixed;
+    height: 100vh;
+    width: 100vw;
+    background: rgba(90, 44, 8, 0.29);
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
-    animation: fadeIn 0.2s ease-in-out;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+.modal {
+    height: 67%;
+    width: 40%;
+    padding: 1rem;
+    background-image: url("img.png");
+    background-size: cover;
+    background-repeat: no-repeat;
+    border: 1rem #603308 solid;
+    border-radius: 1rem;
+    position: relative;
 }
 
-/* Modal Content */
-.modalContent {
-    background: white;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 600px;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    animation: slideUp 0.3s ease-out;
-}
-
-@keyframes slideUp {
-    from {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-/* Modal Header */
-.modalHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.modalHeader h2 {
-    margin: 0;
-    font-size: 24px;
-    color: #1f2937;
+.header {
+    font-size: 1.5rem;
+    width: 100%;
 }
 
 .closeButton {
-    background: none;
-    border: none;
-    font-size: 32px;
-    color: #6b7280;
-    cursor: pointer;
-    padding: 0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: color 0.2s;
+    position: absolute;
+    top: 4px;
+    right: 1rem;
+    font-size: 2.5rem;
+    font-weight: 750;
 }
 
 .closeButton:hover {
-    color: #1f2937;
-}
-
-/* Modal Body */
-.modalBody {
-    padding: 24px;
-    overflow-y: auto;
-    flex: 1;
-}
-
-/* Loading, Error, Empty States */
-.loading,
-.error,
-.empty {
-    text-align: center;
-    padding: 40px 20px;
-    color: #6b7280;
-}
-
-.error {
-    color: #dc2626;
-}
-
-.error button {
-    margin-top: 16px;
-    padding: 8px 16px;
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 6px;
     cursor: pointer;
 }
 
-/* Task List */
-.taskList {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.taskItem {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 16px;
-    background-color: #f9fafb;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    transition: box-shadow 0.2s;
-}
-
-.taskItem:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.taskInfo {
-    flex: 1;
-}
-
-.taskInfo h3 {
-    margin: 0 0 8px 0;
-    font-size: 18px;
-    color: #1f2937;
-}
-
-.taskDate {
-    margin: 4px 0;
-    font-size: 14px;
-    color: #6b7280;
-}
-
-.taskNotes {
-    margin: 8px 0 4px 0;
-    font-size: 14px;
-    color: #374151;
-}
-
-.taskPerformer {
-    margin: 4px 0;
-    font-size: 13px;
-    color: #9ca3af;
-    font-style: italic;
-}
-
-/* Task Actions */
-.taskActions {
-    display: flex;
-    gap: 8px;
-    margin-left: 16px;
-}
-
-.completeButton,
-.deleteButton {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s;
-}
-
-.completeButton {
-    background-color: #10b981;
-    color: white;
-}
-
-.completeButton:hover {
-    background-color: #059669;
-}
-
-.deleteButton {
-    background-color: #ef4444;
-    color: white;
-}
-
-.deleteButton:hover {
-    background-color: #dc2626;
-}
-
-/* Modal Footer */
-.modalFooter {
-    padding: 16px 24px;
-    border-top: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: center;
-}
-
-.addButton {
-    padding: 10px 24px;
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.addButton:hover {
-    background-color: #2563eb;
-}
-
-/* Responsive Design */
-@media (max-width: 640px) {
-    .modalContent {
-        width: 95%;
-        max-height: 90vh;
-    }
-
-    .modalHeader {
-        padding: 16px;
-    }
-
-    .modalBody {
-        padding: 16px;
-    }
-
-    .taskItem {
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .taskActions {
-        margin-left: 0;
-        width: 100%;
-    }
-
-    .taskActions button {
-        flex: 1;
-    }
+ul {
+    font-size: 1.5rem;
 }

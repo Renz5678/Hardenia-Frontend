@@ -1,123 +1,67 @@
+import {useRef, useEffect, useState} from 'react';
 import styles from './TaskModal.module.css';
-import { useRef, useEffect } from 'react';
 
-export default function TaskModal({ flower, tasks, isLoading, error, onClose, onTaskUpdate }) {
+export default function TaskModal({ flower, onClose }) {
     const modalRef = useRef(null);
+    const [tasks, setTasks] = useState([]);
 
-    // Close modal when clicking outside
+    const getTasks = async () => {
+        try {
+            const response = await fetch(`https://flower-backend-latest-8vkl.onrender.com/maintenance/flower/${flower.flower_id}`);
+
+            if (!response.ok)
+                throw new Error("Tasks failed to fetch")
+
+            const data = await response.json(); // Added await here
+            console.log(data)
+            setTasks(data);
+        } catch(e) {
+            console.log(e);
+        }
+    };
+
     useEffect(() => {
+        getTasks(); // Call getTasks when component mounts
+
         function handleClickOutside(event) {
             if (modalRef.current && !modalRef.current.contains(event.target)) {
                 onClose();
             }
         }
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [onClose]);
-
-    // Close modal on Escape key
-    useEffect(() => {
         function handleEscape(event) {
             if (event.key === 'Escape') {
                 onClose();
             }
         }
 
+        document.addEventListener('mousedown', handleClickOutside);
         document.addEventListener('keydown', handleEscape);
+
         return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('keydown', handleEscape);
         };
     }, [onClose]);
 
-    const handleCompleteTask = async (taskId) => {
-        try {
-            // TODO: Implement task completion API call
-            console.log('Completing task:', taskId);
-            // await fetch(`API_URL/maintenance/${taskId}/complete`, { method: 'PATCH' });
-            onTaskUpdate(); // Refresh tasks after update
-        } catch (error) {
-            console.error('Error completing task:', error);
-        }
-    };
-
-    const handleDeleteTask = async (taskId) => {
-        try {
-            // TODO: Implement task deletion API call
-            console.log('Deleting task:', taskId);
-            // await fetch(`API_URL/maintenance/${taskId}`, { method: 'DELETE' });
-            onTaskUpdate(); // Refresh tasks after deletion
-        } catch (error) {
-            console.error('Error deleting task:', error);
-        }
-    };
 
     return (
-        <div className={styles.modalOverlay}>
-            <div ref={modalRef} className={styles.modalContent}>
-                <div className={styles.modalHeader}>
-                    <h2>Tasks for {flower.flowerName}</h2>
-                    <button className={styles.closeButton} onClick={onClose}>
-                        ×
-                    </button>
+        <div className={styles.overlay}>
+            <div ref={modalRef} className={styles.modal}>
+                <span className={styles.closeButton} onClick={onClose}>x</span>
+                <div className={styles.header}>
+                    <h2 className={styles.title}>Tasks for {flower.flowerName}</h2>
                 </div>
 
-                <div className={styles.modalBody}>
-                    {isLoading ? (
-                        <div className={styles.loading}>
-                            <p>Loading tasks...</p>
-                        </div>
-                    ) : error ? (
-                        <div className={styles.error}>
-                            <p>Error: {error}</p>
-                            <button onClick={onTaskUpdate}>Retry</button>
-                        </div>
-                    ) : tasks.length === 0 ? (
-                        <div className={styles.empty}>
-                            <p>No tasks available for this flower</p>
-                        </div>
-                    ) : (
-                        <div className={styles.taskList}>
-                            {tasks.map((task) => (
-                                <div key={task.task_id} className={styles.taskItem}>
-                                    <div className={styles.taskInfo}>
-                                        <h3>{task.taskType}</h3>
-                                        <p className={styles.taskDate}>
-                                            Due: {new Date(task.scheduledDate).toLocaleDateString()}
-                                        </p>
-                                        {task.notes && (
-                                            <p className={styles.taskNotes}>{task.notes}</p>
-                                        )}
-                                        {task.performedBy && (
-                                            <p className={styles.taskPerformer}>By: {task.performedBy}</p>
-                                        )}
-                                    </div>
-                                    <div className={styles.taskActions}>
-                                        <button
-                                            className={styles.completeButton}
-                                            onClick={() => handleCompleteTask(task.task_id)}
-                                        >
-                                            Complete
-                                        </button>
-                                        <button
-                                            className={styles.deleteButton}
-                                            onClick={() => handleDeleteTask(task.task_id)}
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                <div className={styles.modalFooter}>
-                    <button className={styles.addButton}>
-                        + Add New Task
-                    </button>
+                <div className={styles.body}>
+                    <ul>
+                        {tasks.map((task) => (
+                            <li key={task.task_id}>
+                                {task.maintenanceType} - {new Date(task.maintenanceDate).toLocaleDateString()}
+                                {task.notes && ` - ${task.notes}`}
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             </div>
         </div>

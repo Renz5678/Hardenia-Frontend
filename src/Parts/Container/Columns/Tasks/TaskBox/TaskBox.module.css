@@ -1,3 +1,7 @@
+.taskBox:hover {
+    cursor: pointer;
+}
+
 .dropdown {
     position: absolute;
     left: 50%;
