@@ -14,15 +14,15 @@ import {useState, useRef, useEffect} from "react";
 const API_BASE_URL = "https://flower-backend-latest-8vkl.onrender.com";
 
 const FLOWER_CARE_TEMPLATES = {
-    sunflower: { waterFrequencyDays: 2, fertilizeFrequencyDays: 14, pruneFrequencyDays: 21 },
-    anthurium: { waterFrequencyDays: 3, fertilizeFrequencyDays: 30, pruneFrequencyDays: 60 },
-    hibiscus: { waterFrequencyDays: 1, fertilizeFrequencyDays: 7, pruneFrequencyDays: 30 },
-    kalachuchi: { waterFrequencyDays: 4, fertilizeFrequencyDays: 21, pruneFrequencyDays: 45 },
-    zinnias: { waterFrequencyDays: 2, fertilizeFrequencyDays: 14, pruneFrequencyDays: 28 },
-    cosmos: { waterFrequencyDays: 2, fertilizeFrequencyDays: 14, pruneFrequencyDays: 21 },
-    marigold: { waterFrequencyDays: 2, fertilizeFrequencyDays: 10, pruneFrequencyDays: 14 },
-    sampaguita: { waterFrequencyDays: 3, fertilizeFrequencyDays: 21, pruneFrequencyDays: 30 },
-    tulips: { waterFrequencyDays: 3, fertilizeFrequencyDays: 14, pruneFrequencyDays: 28 }
+    sunflower: { waterFrequencyDays: 2, fertilizeFrequencyDays: 14, pruneFrequencyDays: 21, sunlightFrequencyDays: 1 },
+    anthurium: { waterFrequencyDays: 3, fertilizeFrequencyDays: 30, pruneFrequencyDays: 60, sunlightFrequencyDays: 1 },
+    hibiscus: { waterFrequencyDays: 1, fertilizeFrequencyDays: 7, pruneFrequencyDays: 30, sunlightFrequencyDays: 1 },
+    kalachuchi: { waterFrequencyDays: 4, fertilizeFrequencyDays: 21, pruneFrequencyDays: 45, sunlightFrequencyDays: 1 },
+    zinnias: { waterFrequencyDays: 2, fertilizeFrequencyDays: 14, pruneFrequencyDays: 28, sunlightFrequencyDays: 1 },
+    cosmos: { waterFrequencyDays: 2, fertilizeFrequencyDays: 14, pruneFrequencyDays: 21, sunlightFrequencyDays: 1 },
+    marigold: { waterFrequencyDays: 2, fertilizeFrequencyDays: 10, pruneFrequencyDays: 14, sunlightFrequencyDays: 1 },
+    sampaguita: { waterFrequencyDays: 3, fertilizeFrequencyDays: 21, pruneFrequencyDays: 30, sunlightFrequencyDays: 1 },
+    tulips: { waterFrequencyDays: 3, fertilizeFrequencyDays: 14, pruneFrequencyDays: 28, sunlightFrequencyDays: 1 }
 };
 
 const FLOWER_IMAGES = {
@@ -90,9 +90,14 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
     };
 
     const createMaintenanceTasks = async (flowerId, careTemplate, plantName) => {
-        const tasks = ['WATERING', 'FERTILIZING', 'PRUNING'].map((type, i) => {
+        const tasks = ['WATERING', 'FERTILIZING', 'PRUNING', 'SUNLIGHT'].map((type, i) => {
             const date = new Date();
-            const frequencies = [careTemplate.waterFrequencyDays, careTemplate.fertilizeFrequencyDays, careTemplate.pruneFrequencyDays];
+            const frequencies = [
+                careTemplate.waterFrequencyDays,
+                careTemplate.fertilizeFrequencyDays,
+                careTemplate.pruneFrequencyDays,
+                careTemplate.sunlightFrequencyDays
+            ];
             date.setDate(date.getDate() + frequencies[i]);
 
             return {
@@ -121,7 +126,10 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
         if (isSubmitting || !validateForm()) return;
 
         const careTemplate = FLOWER_CARE_TEMPLATES[formData.plantType.toLowerCase()] || {
-            waterFrequencyDays: 3, fertilizeFrequencyDays: 14, pruneFrequencyDays: 30
+            waterFrequencyDays: 3,
+            fertilizeFrequencyDays: 14,
+            pruneFrequencyDays: 30,
+            sunlightFrequencyDays: 1
         };
 
         const currentDate = new Date().toISOString();
@@ -135,6 +143,7 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
             lastWateredDate: currentDate,
             lastFertilizedDate: currentDate,
             lastPrunedDate: currentDate,
+            lastSunlightDate: currentDate,
             autoScheduling: true
         };
 

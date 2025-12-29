@@ -41,5 +41,41 @@
 }
 
 ul {
-    font-size: 1.5rem;
+    font-size: 1rem;
+    line-height: 2rem;
+    font-weight: 600;
+}
+
+li {
+    width: 100%;
+    position: relative;
+}
+
+.markAsDone {
+    background: #4CAF50;
+    color: black;
+    width: 4rem;
+    height: 1.5rem;
+    position: absolute;
+    right: 5rem;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.delete {
+    background: #f44336;
+    color: black;
+    width: 4rem;
+    height: 1.5rem;
+    position: absolute;
+    right: 0.5rem;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.markAsDone:hover,
+.delete:hover{
+    cursor: pointer;
+    background: #243547;
+    color: white;
 }

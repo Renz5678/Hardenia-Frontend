@@ -30,7 +30,6 @@ export default function TaskBox({ flower }) {
             }
 
             const data = await response.json();
-            console.log("Tasks fetched:", data);
             setTasks(data);
         } catch (error) {
             console.error("Error fetching tasks:", error);

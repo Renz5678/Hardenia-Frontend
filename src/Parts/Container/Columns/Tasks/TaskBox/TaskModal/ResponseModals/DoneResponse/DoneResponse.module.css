@@ -1,0 +1,16 @@
+.doneModal {
+    position: fixed;
+    z-index: 19999;
+    height: 30vh;
+    width: 30vw;
+    background: #e38a31;
+    border: solid #603308 8px;
+    border-radius: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    font-size: 0.9rem;
+    text-align: center;
+    left: 35%;
+}

@@ -29,7 +29,6 @@ export default function Status({ onWeatherUpdate }) {
     const updateWeather = (condition, code) => {
         setWeather(condition);
         setWeatherImage(weatherImages[code]);
-        console.log(condition);
         // Call the parent's callback function
         if (onWeatherUpdate) {
             onWeatherUpdate(condition);

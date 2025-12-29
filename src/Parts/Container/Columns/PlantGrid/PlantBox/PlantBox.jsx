@@ -39,23 +39,23 @@ export default function PlantBox({ plant, index, onClick, onToolUse }) {
     const [showDetails, setShowDetails] = useState(false);
     const boxRef = useRef(null);
 
-    const getFlowerImage = (flowerName) => {
-        console.log(plant.flowerName)
-        const lowerCaseName = flowerName.toLowerCase();
-        return FLOWER_IMAGES[lowerCaseName] || null;
+    const getFlowerImage = (species) => {
+        if (!species) {
+            console.log('No species provided for plant');
+            return sunflower; // Default fallback
+        }
+
+        const lowerCaseName = species.toLowerCase().trim();
+        const image = FLOWER_IMAGES[lowerCaseName];
+
+        return image || sunflower; // Default fallback instead of null
     }
 
     // Handle drag over - required to allow drop
     const handleDragOver = (e) => {
         e.preventDefault();
         e.stopPropagation();
-
-        // Show different feedback based on whether there's a plant
-        if (plant) {
-            setIsDraggingOver(true);
-        } else {
-            setIsDraggingOver(true);
-        }
+        setIsDraggingOver(true);
     };
 
     // Handle drag leave
@@ -201,7 +201,14 @@ export default function PlantBox({ plant, index, onClick, onToolUse }) {
             >
                 {plant ? (
                     <>
-                        <img src={getFlowerImage(plant.species)} alt={plant.flowerName} />
+                        <img
+                            src={getFlowerImage(plant.species)}
+                            alt={plant.flowerName || 'plant'}
+                            onError={(e) => {
+                                console.error('Image failed to load for species:', plant.species);
+                                e.target.src = sunflower; // Fallback on error
+                            }}
+                        />
 
                         {/* Show action feedback with tool image only */}
                         {currentAction && getActionIcon() && (

@@ -1,5 +1,5 @@
 import styles from './PlantGrid.module.css'
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import PlantForm from "./NewPlantForm/PlantForm.jsx";
 import PlantBox from "./PlantBox/PlantBox.jsx";
 
@@ -8,6 +8,11 @@ export default function PlantGrid({ plants, onPlantAdded }) {
     const [selectedPosition, setSelectedPosition] = useState(null);
     const [localPlants, setLocalPlants] = useState(plants);
     const totalBoxes = 9;
+
+    // Sync localPlants with plants prop when it changes
+    useEffect(() => {
+        setLocalPlants(plants);
+    }, [plants]);
 
     // Create grid with flowers in their assigned positions
     const gridItems = Array.from({ length: totalBoxes }, (_, index) => {
