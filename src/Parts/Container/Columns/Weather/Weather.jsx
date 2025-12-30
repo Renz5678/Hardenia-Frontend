@@ -26,7 +26,7 @@ export default function Weather() {
     return (
         <>
             <div className={styles.weather}>
-                <img src={WeatherStatus} alt="weatherStatus"/>
+                {/*<img src={WeatherStatus} alt="weatherStatus"/>*/}
                 <Status onWeatherUpdate={handleWeatherUpdate} /> {/* Pass the callback */}
                 <h1>{date}</h1>
                 <Day />
