@@ -33,23 +33,30 @@ export default function PlantGrid({ plants = [], onPlantAdded }) {
         setIsOpen(false);
     };
 
-    // Add handler for plant deletion
-    const handlePlantDeleted = (flowerId) => {
-        setLocalPlants(prev => prev.filter(plant => plant.flower_id !== flowerId));
+    // Handler for plant deletion - receives index from PlantBox
+    const handlePlantDeleted = (index) => {
+        const plantToDelete = gridItems[index];
 
-        if (onPlantAdded) {
-            // Fetch updated plants from parent
-            onPlantAdded();
+        if (plantToDelete && plantToDelete.flower_id) {
+            setLocalPlants(prev => prev.filter(plant => plant.flower_id !== plantToDelete.flower_id));
+
+            if (onPlantAdded) {
+                // Trigger refresh in parent
+                onPlantAdded();
+            }
         }
     };
 
-    // Add handler for plant update
+    // Handler for plant update - can be called without parameters to just refresh
     const handlePlantUpdated = (updatedPlant) => {
-        setLocalPlants(prev => prev.map(plant =>
-            plant.flower_id === updatedPlant.flower_id ? updatedPlant : plant
-        ));
+        if (updatedPlant && updatedPlant.flower_id) {
+            setLocalPlants(prev => prev.map(plant =>
+                plant.flower_id === updatedPlant.flower_id ? updatedPlant : plant
+            ));
+        }
 
         if (onPlantAdded) {
+            // Trigger refresh in parent
             onPlantAdded();
         }
     };
@@ -59,7 +66,7 @@ export default function PlantGrid({ plants = [], onPlantAdded }) {
             <div className={styles.grid}>
                 {gridItems.map((plant, index) => (
                     <PlantBox
-                        key={index}
+                        key={plant?.flower_id || index}
                         plant={plant}
                         index={index}
                         onClick={() => handleBoxClick(index)}

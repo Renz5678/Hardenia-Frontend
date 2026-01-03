@@ -40,7 +40,7 @@ export default function DeleteResponse({ onClose, onConfirm }) {
                     <h1>Are you sure to delete this flower?</h1>
 
                     <div className={styles.buttonContainer}>
-                        <button className={styles.yes} onClick={handleConfirm}>Yes</button>
+                        <button className={styles.yes} onClick={onConfirm}>Yes</button>
                         <button className={styles.no} onClick={onClose}>No</button>
                     </div>
                 </div>

@@ -135,13 +135,13 @@ button {
 }
 
 .modal {
-    background: white;
+    background: #d68f48;
     padding: 30px;
     border-radius: 12px;
     text-align: center;
     max-width: 400px;
     width: 90%;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    border: 1rem #603308 solid;
 }
 
 .modalIcon {

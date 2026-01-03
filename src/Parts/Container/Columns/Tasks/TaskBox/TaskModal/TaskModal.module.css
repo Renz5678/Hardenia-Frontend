@@ -74,8 +74,18 @@ li {
 }
 
 .edit:hover,
-.delete:hover{
+.delete:hover,
+.addBtn:hover {
     cursor: pointer;
     background: #243547;
     color: white;
 }
+
+.addBtn {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    width: 30%;
+    height: 10%;
+}
+

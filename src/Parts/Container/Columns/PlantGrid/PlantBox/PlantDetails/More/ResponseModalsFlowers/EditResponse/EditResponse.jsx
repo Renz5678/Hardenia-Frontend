@@ -11,6 +11,7 @@ export default function EditResponse({ flower, onClose, onSave }) {
         stage: 'SEED'
     });
     const [showSuccess, setShowSuccess] = useState(false);
+    const [growthId, setGrowthId] = useState(null);
 
     useEffect(() => {
         if (flower) {
@@ -22,8 +23,33 @@ export default function EditResponse({ flower, onClose, onSave }) {
                 pruneFrequencyDays: flower.pruneFrequencyDays || 0,
                 stage: flower.stage || 'SEED'
             });
+
+            // Fetch growth details to get the growth_id
+            fetchGrowthDetails();
         }
     }, [flower]);
+
+    const fetchGrowthDetails = async () => {
+        try {
+            const response = await fetch(`https://flower-backend-latest-8vkl.onrender.com/growth/flower/${flower.flower_id}`);
+            if (response.ok) {
+                const growthData = await response.json();
+                // Assuming the API returns either a single object or an array
+                const growth = Array.isArray(growthData) ? growthData[0] : growthData;
+                if (growth && growth.growth_id) {
+                    setGrowthId(growth.growth_id);
+                    // Set the height from the fetched growth data
+                    setFormData(prev => ({
+                        ...prev,
+                        height: growth.height || 0,
+                        stage: growth.stage || prev.stage
+                    }));
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching growth details:', error);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -63,29 +89,30 @@ export default function EditResponse({ flower, onClose, onSave }) {
                 throw new Error('Failed to update plant details');
             }
 
-            // Update growth details
-            const growthResponse = await fetch(`https://flower-backend-latest-8vkl.onrender.com/growth/${flower.flower_id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    flower_id: flower.flower_id,
-                    stage: formData.stage,
-                    height: formData.height,
-                    colorChanges: flower.colorChanges || true,
-                    notes: flower.notes || '',
-                    recordedAt: new Date().toISOString(),
-                    growthSinceLast: 0
-                })
-            });
+            // Update growth details using the correct growth_id
+            if (growthId) {
+                const growthResponse = await fetch(`https://flower-backend-latest-8vkl.onrender.com/growth/${growthId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        flower_id: flower.flower_id,
+                        stage: formData.stage,
+                        height: formData.height,
+                        colorChanges: flower.colorChanges || true,
+                        notes: flower.notes || '',
+                        recordedAt: new Date().toISOString(),
+                        growthSinceLast: 0
+                    })
+                });
 
-            if (!growthResponse.ok) {
-                throw new Error('Failed to update growth details');
+                if (!growthResponse.ok) {
+                    throw new Error('Failed to update growth details');
+                }
             }
 
             const updatedPlant = await plantResponse.json();
-            const updatedGrowth = await growthResponse.json();
 
             // Show success message
             setShowSuccess(true);
@@ -93,8 +120,10 @@ export default function EditResponse({ flower, onClose, onSave }) {
             // Hide success message after 2 seconds and close modal
             setTimeout(() => {
                 setShowSuccess(false);
-                onSave({ ...updatedPlant, ...updatedGrowth });
+                onSave(updatedPlant);
                 onClose();
+                // Reload the page to reflect changes
+                window.location.reload();
             }, 2000);
 
         } catch (error) {
@@ -128,13 +157,12 @@ export default function EditResponse({ flower, onClose, onSave }) {
                     <label className={styles.label} htmlFor="height">Height (cm):</label>
                     <input
                         className={styles.input}
-                        type="number"
+                        type="text"
                         id="height"
                         name="height"
                         value={formData.height}
                         onChange={handleChange}
-                        min="0"
-                        step="0.1"
+                        autoComplete="off"
                         required
                     />
                 </div>

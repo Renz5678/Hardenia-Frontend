@@ -46,7 +46,7 @@ export default function NextDueTask() {
                         <p>Due: {new Date(earliestTask.maintenanceDate).toLocaleDateString()}</p>
                     </>
                 ) : (
-                    <p>No plant yet.</p>
+                    <p>No tasks yet :).</p>
                 )}
             </div>
         </>

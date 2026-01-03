@@ -1,0 +1,102 @@
+.addModal {
+    position: fixed;
+    z-index: 99999;
+    top: 15%;
+    left: 30%;
+    height: 70vh;
+    width: 40vw;
+    background: #e38a31;
+    border: #603308 1rem solid;
+    border-radius: 1rem;
+}
+
+.addForm {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    text-align: left;
+}
+
+.formGroup {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+form {
+    width: 100%;
+    padding: 1rem;
+}
+
+h2 {
+    width: 100%;
+    text-align: left;
+    padding-left: 1rem;
+    font-size: 1.6rem;
+}
+
+input,
+select {
+    height: 2rem;
+    font-family: "Architects Daughter", cursive;
+    font-weight: 600;
+}
+
+label {
+    font-weight: 600;
+}
+
+.formActions {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    padding: 1rem;
+}
+
+.cancelBtn,
+.submitBtn {
+    height: 3rem;
+    width: 12rem;
+}
+
+.cancelBtn {
+    background: #f44336;
+}
+
+.cancelBtn:hover,
+.submitBtn:hover {
+    background: #223245;
+    color: white;
+    cursor: pointer;
+}
+
+textarea {
+    font-family: "Architects Daughter", cursive;
+}
+
+input, select, textarea {
+    padding: 4px;
+}
+
+.addSuccessful {
+    position: fixed;
+    height: 30vh;
+    width: 30vw;
+    background: #e38a31;
+    border: 1rem #603308 solid;
+    top: 35%;
+    left: 35%;
+    text-align: center;
+    z-index: 999999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}

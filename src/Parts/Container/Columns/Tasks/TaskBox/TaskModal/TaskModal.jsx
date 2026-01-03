@@ -3,6 +3,7 @@ import styles from './TaskModal.module.css';
 import EditResponse from "./ResponseModals/EditResponse/EditResponse.jsx";
 import DeleteResponse from "./ResponseModals/DeleteResponse/DeleteResponse.jsx";
 import DeleteSuccessful from "./ResponseModals/DeleteSuccessful/DeleteSuccessful.jsx";
+import AddResponse from "./ResponseModals/AddResponse/AddResponse.jsx";
 
 export default function TaskModal({ flower, onClose }) {
     const modalRef = useRef(null);
@@ -12,6 +13,7 @@ export default function TaskModal({ flower, onClose }) {
     const [targetTaskId, setTargetTaskId] = useState(null);
     const [targetTask, setTargetTask] = useState(null);
     const [isDeleteSuccess, setIsDeleteSuccess] = useState(false);
+    const [isAddClicked, setIsAddClicked] = useState(false);
 
     const getTasks = async () => {
         try {
@@ -31,8 +33,8 @@ export default function TaskModal({ flower, onClose }) {
         getTasks();
 
         function handleClickOutside(event) {
-            // Don't close if clicking inside delete or edit modal
-            if (isDelete || isEdit) return;
+            // Don't close if clicking inside delete, edit, or add modal
+            if (isDelete || isEdit || isAddClicked) return;
 
             if (modalRef.current && !modalRef.current.contains(event.target)) {
                 onClose();
@@ -45,6 +47,8 @@ export default function TaskModal({ flower, onClose }) {
                     setIsDelete(false);
                 } else if (isEdit) {
                     setIsEdit(false);
+                } else if (isAddClicked) {
+                    setIsAddClicked(false);
                 } else {
                     onClose();
                 }
@@ -58,7 +62,7 @@ export default function TaskModal({ flower, onClose }) {
             document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('keydown', handleEscape);
         };
-    }, [onClose, isDelete, isEdit]);
+    }, [onClose, isDelete, isEdit, isAddClicked]);
 
     // Auto-close DeleteSuccessful after 2 seconds
     useEffect(() => {
@@ -108,6 +112,7 @@ export default function TaskModal({ flower, onClose }) {
         console.log('Task updated successfully:', updatedTask);
         await getTasks(); // Refresh the task list
         setIsEdit(false); // Close the edit modal
+        window.location.reload();
     };
 
     return (
@@ -144,6 +149,9 @@ export default function TaskModal({ flower, onClose }) {
                             </ul>
                         )}
                     </div>
+
+                    <button className={styles.addBtn}
+                            onClick={()=>setIsAddClicked(true)}>Add Task</button>
                 </div>
             </div>
 
@@ -166,6 +174,7 @@ export default function TaskModal({ flower, onClose }) {
                 />
             )}
 
+            {isAddClicked && (<AddResponse onClose={()=>setIsAddClicked(false)} flower={flower}/>)}
             {isDeleteSuccess && <DeleteSuccessful onClose={() => setIsDeleteSuccess(false)} />}
         </>
     );
