@@ -1,6 +1,6 @@
-.doneModal {
+.successModal {
     position: fixed;
-    z-index: 19999;
+    z-index: 29999;
     height: 30vh;
     width: 30vw;
     background: #e38a31;
@@ -10,7 +10,7 @@
     justify-content: center;
     align-items: center;
     padding: 1rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
     text-align: center;
     left: 35%;
 }

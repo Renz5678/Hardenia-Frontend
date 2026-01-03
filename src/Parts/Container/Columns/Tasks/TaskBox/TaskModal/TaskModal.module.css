@@ -12,7 +12,7 @@
 }
 
 .modal {
-    height: 67%;
+    height: 70%;
     width: 40%;
     padding: 1rem;
     background-image: url("img.png");
@@ -51,8 +51,8 @@ li {
     position: relative;
 }
 
-.markAsDone {
-    background: #4CAF50;
+.edit {
+    background: #4c91af;
     color: black;
     width: 4rem;
     height: 1.5rem;
@@ -73,7 +73,7 @@ li {
     font-size: 1rem;
 }
 
-.markAsDone:hover,
+.edit:hover,
 .delete:hover{
     cursor: pointer;
     background: #243547;

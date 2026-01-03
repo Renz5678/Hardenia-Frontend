@@ -7,10 +7,11 @@
     bottom: 27%;
     right: 2rem;
     position: fixed;
-    padding: 5rem 1rem 0 1rem;
+    padding: 2rem 1rem 0 1rem;
     display: flex;
-    justify-content: flex-start;
-    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    align-items: flex-end;
     gap: 1rem;
 }
 

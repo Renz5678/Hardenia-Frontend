@@ -5,9 +5,11 @@ export default function Tasks({ plants = [] }) {
     return(
         <>
             <div className={styles.tasks}>
-                {plants.map((flower, index) => (
-                    <TaskBox key={flower.id || index} flower={flower} />
-                ))}
+                {plants
+                    .filter(flower => flower != null) // Remove null/undefined entries
+                    .map((flower, index) => (
+                        <TaskBox key={flower.id || index} flower={flower} />
+                    ))}
             </div>
         </>
     )

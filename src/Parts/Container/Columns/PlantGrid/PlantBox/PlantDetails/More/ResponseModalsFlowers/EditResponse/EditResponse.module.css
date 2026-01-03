@@ -1,0 +1,119 @@
+.editModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.formContainer {
+    background-color: #e38a31;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    border: 1rem #603308 solid;
+}
+
+.closeButton {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 2rem;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: black;
+}
+
+.formGroup {
+    margin-bottom: 1rem;
+
+}
+
+.label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: black;
+    font-weight: bold;
+}
+
+.input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    font-family: "Architects Daughter", cursive;
+}
+
+.select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    font-family: "Architects Daughter", cursive;
+}
+
+.buttonGroup {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.saveButton {
+    flex: 1;
+    padding: 0.75rem;
+    color: black;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.cancelButton {
+    flex: 1;
+    padding: 0.75rem;
+    color: white;
+    background: #f44336;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.saveButton,
+.cancelButton {
+    height: 3rem;
+    border-radius: 2rem;
+    font-size: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.successMessage {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #4CAF50;
+    color: black;
+    padding: 2rem;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    z-index: 1001;
+}

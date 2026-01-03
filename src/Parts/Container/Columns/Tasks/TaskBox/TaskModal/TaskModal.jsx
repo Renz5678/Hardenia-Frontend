@@ -1,15 +1,16 @@
 import {useRef, useEffect, useState} from 'react';
 import styles from './TaskModal.module.css';
-import DoneResponse from "./ResponseModals/DoneResponse/DoneResponse.jsx";
+import EditResponse from "./ResponseModals/EditResponse/EditResponse.jsx";
 import DeleteResponse from "./ResponseModals/DeleteResponse/DeleteResponse.jsx";
 import DeleteSuccessful from "./ResponseModals/DeleteSuccessful/DeleteSuccessful.jsx";
 
 export default function TaskModal({ flower, onClose }) {
     const modalRef = useRef(null);
     const [tasks, setTasks] = useState([]);
-    const [isDone, setIsDone] = useState(false);
+    const [isEdit, setIsEdit] = useState(false);
     const [isDelete, setIsDelete] = useState(false);
     const [targetTaskId, setTargetTaskId] = useState(null);
+    const [targetTask, setTargetTask] = useState(null);
     const [isDeleteSuccess, setIsDeleteSuccess] = useState(false);
 
     const getTasks = async () => {
@@ -30,8 +31,8 @@ export default function TaskModal({ flower, onClose }) {
         getTasks();
 
         function handleClickOutside(event) {
-            // Don't close if clicking inside delete modal
-            if (isDelete) return;
+            // Don't close if clicking inside delete or edit modal
+            if (isDelete || isEdit) return;
 
             if (modalRef.current && !modalRef.current.contains(event.target)) {
                 onClose();
@@ -42,6 +43,8 @@ export default function TaskModal({ flower, onClose }) {
             if (event.key === 'Escape') {
                 if (isDelete) {
                     setIsDelete(false);
+                } else if (isEdit) {
+                    setIsEdit(false);
                 } else {
                     onClose();
                 }
@@ -55,18 +58,7 @@ export default function TaskModal({ flower, onClose }) {
             document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('keydown', handleEscape);
         };
-    }, [onClose, isDelete]);
-
-    // Auto-close DoneResponse after 2 seconds
-    useEffect(() => {
-        if (isDone) {
-            const timer = setTimeout(() => {
-                setIsDone(false);
-            }, 2000);
-
-            return () => clearTimeout(timer);
-        }
-    }, [isDone]);
+    }, [onClose, isDelete, isEdit]);
 
     // Auto-close DeleteSuccessful after 2 seconds
     useEffect(() => {
@@ -112,6 +104,12 @@ export default function TaskModal({ flower, onClose }) {
         }
     };
 
+    const handleSaveTask = async (updatedTask) => {
+        console.log('Task updated successfully:', updatedTask);
+        await getTasks(); // Refresh the task list
+        setIsEdit(false); // Close the edit modal
+    };
+
     return (
         <>
             <div className={styles.overlay}>
@@ -130,10 +128,11 @@ export default function TaskModal({ flower, onClose }) {
                                     <li key={task.task_id}>
                                         {task.notes || task.maintenanceType} ({new Date(task.maintenanceDate).toLocaleDateString()})
 
-                                        <button className={styles.markAsDone}
+                                        <button className={styles.edit}
                                                 onClick={() => {
-                                                    setIsDone(true)
-                                                }}>Done</button>
+                                                    setTargetTask(task);
+                                                    setIsEdit(true);
+                                                }}>Edit</button>
                                         <button className={styles.delete}
                                                 onClick={() => {
                                                     console.log('Delete button clicked for task:', task.task_id);
@@ -148,7 +147,14 @@ export default function TaskModal({ flower, onClose }) {
                 </div>
             </div>
 
-            {isDone && <DoneResponse onClose={() => setIsDone(false)} />}
+            {isEdit && (
+                <EditResponse
+                    task={targetTask}
+                    onClose={() => setIsEdit(false)}
+                    onSave={handleSaveTask}
+                    flower={flower}
+                />
+            )}
 
             {isDelete && (
                 <DeleteResponse

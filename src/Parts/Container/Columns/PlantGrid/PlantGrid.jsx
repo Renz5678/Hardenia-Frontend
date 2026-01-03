@@ -3,20 +3,18 @@ import {useState, useEffect} from "react";
 import PlantForm from "./NewPlantForm/PlantForm.jsx";
 import PlantBox from "./PlantBox/PlantBox.jsx";
 
-export default function PlantGrid({ plants, onPlantAdded }) {
+export default function PlantGrid({ plants = [], onPlantAdded }) {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedPosition, setSelectedPosition] = useState(null);
     const [localPlants, setLocalPlants] = useState(plants);
     const totalBoxes = 9;
 
-    // Sync localPlants with plants prop when it changes
     useEffect(() => {
         setLocalPlants(plants);
     }, [plants]);
 
-    // Create grid with flowers in their assigned positions
     const gridItems = Array.from({ length: totalBoxes }, (_, index) => {
-        return localPlants.find(plant => plant.gridPosition === index) || null;
+        return localPlants.find(plant => plant != null && plant.gridPosition === index) || null;
     });
 
     const handleBoxClick = (index) => {
@@ -27,14 +25,33 @@ export default function PlantGrid({ plants, onPlantAdded }) {
     };
 
     const handlePlantAdded = (newPlant) => {
-        // Update local state immediately for instant UI update
         setLocalPlants(prev => [...prev, newPlant]);
 
-        // Also notify parent if callback exists
         if (onPlantAdded) {
             onPlantAdded(newPlant);
         }
         setIsOpen(false);
+    };
+
+    // Add handler for plant deletion
+    const handlePlantDeleted = (flowerId) => {
+        setLocalPlants(prev => prev.filter(plant => plant.flower_id !== flowerId));
+
+        if (onPlantAdded) {
+            // Fetch updated plants from parent
+            onPlantAdded();
+        }
+    };
+
+    // Add handler for plant update
+    const handlePlantUpdated = (updatedPlant) => {
+        setLocalPlants(prev => prev.map(plant =>
+            plant.flower_id === updatedPlant.flower_id ? updatedPlant : plant
+        ));
+
+        if (onPlantAdded) {
+            onPlantAdded();
+        }
     };
 
     return (
@@ -46,6 +63,8 @@ export default function PlantGrid({ plants, onPlantAdded }) {
                         plant={plant}
                         index={index}
                         onClick={() => handleBoxClick(index)}
+                        onDelete={handlePlantDeleted}
+                        onUpdate={handlePlantUpdated}
                     />
                 ))}
             </div>

@@ -1,0 +1,55 @@
+.moreModal {
+    height: 50vh;
+    width: 50vw;
+    background: #e38a31;
+    border: 1rem #603308 solid;
+    position: fixed;
+    z-index: 9999;
+    top: 25%;
+    left: 25%;
+    border-radius: 1rem;
+}
+
+.buttonContainer {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    position: relative;
+}
+
+.editBtn,
+.deleteBtn {
+    width: 50%;
+}
+
+.editBtn {
+    background: #4f7296;
+}
+
+.deleteBtn {
+    background: #f44336;
+}
+
+.editBtn:hover,
+.deleteBtn:hover {
+    background: #223245;
+    color: #dfe7ec;
+    cursor: pointer;
+}
+
+.closeBtn {
+    top: 0;
+    right: 25px;
+    font-family: "Architects Daughter", cursive;
+    position: absolute;
+    font-size: 3rem;
+    font-weight: 750;
+}
+
+.closeBtn:hover {
+    cursor: pointer;
+}
