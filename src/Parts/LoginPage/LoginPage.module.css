@@ -1,0 +1,90 @@
+/* Container for the entire login page */
+* {
+    font-family: "Architects Daughter", cursive;
+}
+
+.backGround {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url("mainBackground.png");
+    background-size: cover;
+    background-repeat: no-repeat;
+    flex-direction: column;
+}
+
+.container {
+    background-image: url("img.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: 80%;
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+/* Title/heading */
+.title {
+    font-family: "Architects Daughter", cursive;
+    line-height: 5rem;
+    text-align: center;
+    font-size: 3rem;
+    height: 20%;
+}
+
+/* Form wrapper */
+.form {
+    height: 60%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+}
+
+/* Individual input field wrapper */
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    width: 60%;
+    gap: 4px;
+}
+
+/* Input fields */
+.input {
+    height: 3rem;
+    border-radius: 1rem;
+    padding: 4px 4px 4px 16px;
+    border: none;
+}
+
+/* Error message */
+.error {
+
+}
+
+/* Submit button */
+.button {
+
+}
+
+/* Button disabled state */
+.button:disabled {
+
+}
+
+/* Footer text */
+.footer {
+    width: 100%;
+    height: 20%;
+    text-align: center;
+}
+
+/* Link styling */
+.link {
+
+}
