@@ -1,6 +1,7 @@
 import styles from './Column.module.css'
 import Weather from "./Weather/Weather.jsx";
 import Tasks from "./Tasks/Tasks.jsx";
+import Logout from "./Logout/Logout.jsx";
 
 export default function LeftColumn({ plants }) {
     return (
@@ -8,6 +9,7 @@ export default function LeftColumn({ plants }) {
             <div className={styles.sideColumn}>
                 <Weather />
                 <Tasks plants={plants}/>
+                <Logout/>
             </div>
         </>
     )

@@ -1,0 +1,15 @@
+.logoutBtn {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 15%;
+    background-image: url("logoutBtnBG.png");
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+.logoutBtn:hover {
+    background: #223245;
+    color: #dfe7ec;
+    cursor: pointer;
+}
