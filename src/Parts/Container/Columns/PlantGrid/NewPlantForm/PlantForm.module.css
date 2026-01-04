@@ -95,8 +95,9 @@ select {
 }
 
 .inputs h2 {
-    margin-top: 0.5rem;
-    height: 10%;
+    height: 15%;
+    line-height: 100%;
+    font-size: 1rem;
 }
 
 button {

@@ -1,28 +1,30 @@
 import styles from './TaskBox.module.css'
-import { useState, useEffect } from "react";
-import TaskModal from './TaskModal/TaskModal.jsx'; // Import the new modal component
+import { useState, useCallback } from "react";
+import TaskModal from './TaskModal/TaskModal.jsx';
+import { useAuth } from '../../../../../contexts/AuthContext.jsx'
+
+const API_BASE_URL = 'https://flower-backend-latest-8vkl.onrender.com';
 
 export default function TaskBox({ flower }) {
+    const { getToken } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [tasks, setTasks] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const handleClick = async () => {
-        setIsModalOpen(true);
-
-        // Fetch tasks when modal opens
-        if (tasks.length === 0 && !isLoading) {
-            await fetchTasks();
-        }
-    };
-
-    const fetchTasks = async () => {
+    const fetchTasks = useCallback(async () => {
         try {
             setIsLoading(true);
             setError(null);
+
+            const token = await getToken();
             const response = await fetch(
-                `https://flower-backend-latest-8vkl.onrender.com/maintenance/flower/${flower.flower_id}`
+                `${API_BASE_URL}/maintenance/flower/${flower.flower_id}`,
+                {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                }
             );
 
             if (!response.ok) {
@@ -31,11 +33,19 @@ export default function TaskBox({ flower }) {
 
             const data = await response.json();
             setTasks(data);
-        } catch (error) {
-            console.error("Error fetching tasks:", error);
-            setError(error.message);
+        } catch (err) {
+            console.error("Error fetching tasks:", err);
+            setError(err.message);
         } finally {
             setIsLoading(false);
+        }
+    }, [flower.flower_id, getToken]);
+
+    const handleClick = () => {
+        setIsModalOpen(true);
+        // Only fetch if we don't have tasks yet
+        if (tasks.length === 0) {
+            fetchTasks();
         }
     };
 
@@ -43,17 +53,9 @@ export default function TaskBox({ flower }) {
         setIsModalOpen(false);
     };
 
-    const handleTaskUpdate = () => {
-        // Refetch tasks when a task is updated
-        fetchTasks();
-    };
-
     return (
         <>
-            <div
-                className={styles.taskBox}
-                onClick={handleClick}
-            >
+            <div className={styles.taskBox} onClick={handleClick}>
                 <h2>{flower.flowerName}</h2>
             </div>
 
@@ -64,7 +66,7 @@ export default function TaskBox({ flower }) {
                     isLoading={isLoading}
                     error={error}
                     onClose={handleCloseModal}
-                    onTaskUpdate={handleTaskUpdate}
+                    onTaskUpdate={fetchTasks}
                 />
             )}
         </>

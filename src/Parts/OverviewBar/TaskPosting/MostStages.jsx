@@ -1,9 +1,11 @@
 import styles from './TaskPosting.module.css'
 import {useState, useEffect} from "react";
+import {useAuth} from '../../../contexts/AuthContext.jsx'
 
 export default function MostStages() {
     const [mostStage, setMostStage] = useState("");
     const [loading, setLoading] = useState(true);
+    const {getToken} = useAuth();
 
     const getMostCommonStage = (growthData) => {
         if (!growthData || growthData.length === 0) return "";
@@ -24,7 +26,12 @@ export default function MostStages() {
 
     const getAllGrowth = async () => {
         try {
-            const response = await fetch("https://flower-backend-latest-8vkl.onrender.com/growth");
+            const token = await getToken();
+            const response = await fetch("https://flower-backend-latest-8vkl.onrender.com/growth", {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
 
             if (!response.ok)
                 throw new Error("failed to fetch growth");

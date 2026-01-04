@@ -6,13 +6,14 @@ import Cloudy from './WeatherStatus/Cloudy.png'
 import Rainy from './WeatherStatus/Rainy.png'
 import Thunder from './WeatherStatus/Thunder.png'
 import ThunderStorm from './WeatherStatus/Thunderstorm.png'
-
+import {useAuth} from '../../../../../contexts/AuthContext.jsx'
 import styles from './Status.module.css'
 
 export default function Status({ onWeatherUpdate }) {
     const [weatherImage, setWeatherImage] = useState(Cloudy);
     const [weather, setWeather] = useState("Cloudy");
     const [showWeatherDescription, setWeatherDescription] = useState(false);
+    const {getToken} = useAuth();
 
     const CACHE_DURATION = 60 * 60 * 2.5 * 1000; // 2.5 hours
 
@@ -65,8 +66,13 @@ export default function Status({ onWeatherUpdate }) {
 
     const fetchWeather = async (lat, lon) => {
         try {
+            const token = await getToken();
             const response = await fetch(
-                `https://flower-backend-latest-8vkl.onrender.com/api/weather/coordinates?lat=${lat}&lng=${lon}`
+                `https://flower-backend-latest-8vkl.onrender.com/api/weather/coordinates?lat=${lat}&lng=${lon}`, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                }
             );
 
             if (!response.ok)

@@ -1,8 +1,10 @@
 import styles from './EditResponse.module.css'
 import { useState, useEffect } from 'react';
 import EditSuccessful from "../EditSuccessful/EditSuccessful.jsx";
+import {useAuth} from '../../../../../../../../contexts/AuthContext.jsx'
 
 export default function EditResponse({ task, onClose, onSave, flower }) {
+    const {getToken} = useAuth();
     const [formData, setFormData] = useState({
         flower_id: 0,
         maintenanceType: '',
@@ -46,10 +48,12 @@ export default function EditResponse({ task, onClose, onSave, flower }) {
         e.preventDefault();
 
         try {
+            const token = await getToken();
             const response = await fetch(`https://flower-backend-latest-8vkl.onrender.com/maintenance/${task.task_id}`, {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(formData)
             });

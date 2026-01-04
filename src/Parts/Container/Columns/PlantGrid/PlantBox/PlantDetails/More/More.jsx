@@ -3,16 +3,22 @@ import {useState} from "react";
 import EditResponse from "./ResponseModalsFlowers/EditResponse/EditResponse.jsx";
 import DeleteResponse from "./ResponseModalsFlowers/DeleteResponse/DeleteResponse.jsx";
 import DeleteSuccessful from "./ResponseModalsFlowers/DeleteSuccessful/DeleteSuccessful.jsx";
+import {useAuth} from '../../../../../../../contexts/AuthContext.jsx'
 
 export default function More({ flower, onClose, onSave, onDelete }) {
     const [isEditClicked, setIsEditClicked] = useState(false);
     const [isDeleteClicked, setIsDeleteClicked] = useState(false);
     const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
+    const {getToken} = useAuth();
 
     const deleteFlower = async () => {
         try {
+            const token = await getToken();
             const response = await fetch(`https://flower-backend-latest-8vkl.onrender.com/flowers/${flower.flower_id}`, {
-                method: "DELETE"
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
             });
 
             if (!response.ok && response.status !== 204) {

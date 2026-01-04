@@ -1,12 +1,19 @@
 import styles from './TaskPosting.module.css'
 import {useEffect, useState} from "react";
+import {useAuth} from '../../../contexts/AuthContext.jsx'
 
 export default function NumberOfPlants() {
     const [numberOfPlants, setNumberOfPlants] = useState(0);
+    const {getToken} = useAuth();
 
     const getNumberOfPlants = async () => {
+        const token = await getToken();
         try {
-            const response = await fetch("https://flower-backend-latest-8vkl.onrender.com/flowers/number_of_flowers");
+            const response = await fetch("https://flower-backend-latest-8vkl.onrender.com/flowers/number_of_flowers", {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
 
             if (!response.ok)
                 throw new Error("Flower details cannot be found!");

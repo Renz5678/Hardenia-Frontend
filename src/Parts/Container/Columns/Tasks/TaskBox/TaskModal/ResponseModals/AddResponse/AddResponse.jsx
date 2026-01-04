@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import styles from './AddResponse.module.css'
 import AddSuccessful from './AddSuccessful.jsx'
+import {useAuth} from '../../../../../../../../contexts/AuthContext.jsx'
 
 export default function AddResponse({ onClose, flower }) {
     const [formData, setFormData] = useState({
@@ -21,6 +22,7 @@ export default function AddResponse({ onClose, flower }) {
         'REPOTTING'
     ]
 
+    const {getToken} = useAuth();
     // Auto-close after 2 seconds when task is added
     useEffect(() => {
         if (taskAdded) {
@@ -53,10 +55,12 @@ export default function AddResponse({ onClose, flower }) {
         }
 
         try {
+            const token = await getToken();
             const response = await fetch('https://flower-backend-latest-8vkl.onrender.com/maintenance', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    "Authorization": `Bearer ${token}`
                 },
                 body: JSON.stringify(submission)
             })

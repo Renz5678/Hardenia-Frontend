@@ -1,6 +1,5 @@
 import styles from './OverviewBar.module.css'
 import grass from './Grass.png'
-import TaskPosting from "./TaskPosting/TaskPosting.jsx";
 import NumberOfPlants from "./TaskPosting/NumberOfPlants.jsx";
 import NextDueTask from "./TaskPosting/NextDueTask.jsx";
 import MostStages from "./TaskPosting/MostStages.jsx";

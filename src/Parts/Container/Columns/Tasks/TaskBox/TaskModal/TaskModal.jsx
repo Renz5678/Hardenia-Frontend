@@ -1,11 +1,15 @@
-import {useRef, useEffect, useState} from 'react';
+import {useRef, useEffect, useState, useCallback} from 'react';
 import styles from './TaskModal.module.css';
 import EditResponse from "./ResponseModals/EditResponse/EditResponse.jsx";
 import DeleteResponse from "./ResponseModals/DeleteResponse/DeleteResponse.jsx";
 import DeleteSuccessful from "./ResponseModals/DeleteSuccessful/DeleteSuccessful.jsx";
 import AddResponse from "./ResponseModals/AddResponse/AddResponse.jsx";
+import {useAuth} from '../../../../../../contexts/AuthContext.jsx'
+
+const API_BASE_URL = 'https://flower-backend-latest-8vkl.onrender.com';
 
 export default function TaskModal({ flower, onClose }) {
+    const { getToken } = useAuth();
     const modalRef = useRef(null);
     const [tasks, setTasks] = useState([]);
     const [isEdit, setIsEdit] = useState(false);
@@ -15,45 +19,85 @@ export default function TaskModal({ flower, onClose }) {
     const [isDeleteSuccess, setIsDeleteSuccess] = useState(false);
     const [isAddClicked, setIsAddClicked] = useState(false);
 
-    const getTasks = async () => {
+    const getTasks = useCallback(async () => {
         try {
-            const response = await fetch(`https://flower-backend-latest-8vkl.onrender.com/maintenance/flower/${flower.flower_id}`);
+            const token = await getToken();
+            const response = await fetch(`${API_BASE_URL}/maintenance/flower/${flower.flower_id}`, {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
 
-            if (!response.ok)
-                throw new Error("Tasks failed to fetch")
+            if (!response.ok) throw new Error("Tasks failed to fetch");
 
             const data = await response.json();
             setTasks(data);
         } catch(e) {
             console.error('Error fetching tasks:', e);
         }
-    };
+    }, [flower.flower_id, getToken]);
 
+    const handleDeleteTask = useCallback(async (taskId) => {
+        try {
+            const token = await getToken();
+            const response = await fetch(`${API_BASE_URL}/maintenance/${taskId}`, {
+                method: 'DELETE',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to delete task: ${errorText}`);
+            }
+
+            // Refresh tasks after deletion
+            await getTasks();
+            setIsDelete(false);
+            setIsDeleteSuccess(true);
+        } catch(e) {
+            console.error('Error deleting task:', e);
+            alert('Failed to delete task: ' + e.message);
+            setIsDelete(false);
+        }
+    }, [getToken, getTasks]);
+
+    const handleSaveTask = useCallback(async (updatedTask) => {
+        await getTasks();
+        setIsEdit(false);
+        window.location.reload();
+    }, [getTasks]);
+
+    const handleAddTask = useCallback(() => {
+        setIsAddClicked(false);
+        getTasks();
+    }, [getTasks]);
+
+    // Initial fetch
     useEffect(() => {
         getTasks();
+    }, [getTasks]);
 
-        function handleClickOutside(event) {
-            // Don't close if clicking inside delete, edit, or add modal
+    // Handle outside clicks and escape key
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            // Don't close if any modal is open
             if (isDelete || isEdit || isAddClicked) return;
-
             if (modalRef.current && !modalRef.current.contains(event.target)) {
                 onClose();
             }
-        }
+        };
 
-        function handleEscape(event) {
+        const handleEscape = (event) => {
             if (event.key === 'Escape') {
-                if (isDelete) {
-                    setIsDelete(false);
-                } else if (isEdit) {
-                    setIsEdit(false);
-                } else if (isAddClicked) {
-                    setIsAddClicked(false);
-                } else {
-                    onClose();
-                }
+                if (isDelete) setIsDelete(false);
+                else if (isEdit) setIsEdit(false);
+                else if (isAddClicked) setIsAddClicked(false);
+                else onClose();
             }
-        }
+        };
 
         document.addEventListener('mousedown', handleClickOutside);
         document.addEventListener('keydown', handleEscape);
@@ -64,56 +108,16 @@ export default function TaskModal({ flower, onClose }) {
         };
     }, [onClose, isDelete, isEdit, isAddClicked]);
 
-    // Auto-close DeleteSuccessful after 2 seconds
+    // Auto-close success message
     useEffect(() => {
-        if (isDeleteSuccess) {
-            const timer = setTimeout(() => {
-                setIsDeleteSuccess(false);
-            }, 2000);
+        if (!isDeleteSuccess) return;
 
-            return () => clearTimeout(timer);
-        }
+        const timer = setTimeout(() => {
+            setIsDeleteSuccess(false);
+        }, 2000);
+
+        return () => clearTimeout(timer);
     }, [isDeleteSuccess]);
-
-    const handleDeleteTask = async (taskId) => {
-        try {
-            console.log('Attempting to delete task:', taskId);
-            const response = await fetch(`https://flower-backend-latest-8vkl.onrender.com/maintenance/${taskId}`, {
-                method: 'DELETE',
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            });
-
-            console.log('Delete response status:', response.status);
-            console.log('Delete response ok:', response.ok);
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Delete failed:', errorText);
-                throw new Error(`Failed to delete task: ${errorText}`);
-            }
-
-            const responseData = await response.text();
-            console.log("Task deleted successfully:", responseData);
-
-            // Refresh tasks after deletion
-            await getTasks();
-            setIsDelete(false);
-            setIsDeleteSuccess(true); // Show success message
-        } catch(e) {
-            console.error('Error in handleDeleteTask:', e);
-            alert('Failed to delete task: ' + e.message);
-            setIsDelete(false);
-        }
-    };
-
-    const handleSaveTask = async (updatedTask) => {
-        console.log('Task updated successfully:', updatedTask);
-        await getTasks(); // Refresh the task list
-        setIsEdit(false); // Close the edit modal
-        window.location.reload();
-    };
 
     return (
         <>
@@ -133,25 +137,36 @@ export default function TaskModal({ flower, onClose }) {
                                     <li key={task.task_id}>
                                         {task.notes || task.maintenanceType} ({new Date(task.maintenanceDate).toLocaleDateString()})
 
-                                        <button className={styles.edit}
-                                                onClick={() => {
-                                                    setTargetTask(task);
-                                                    setIsEdit(true);
-                                                }}>Edit</button>
-                                        <button className={styles.delete}
-                                                onClick={() => {
-                                                    console.log('Delete button clicked for task:', task.task_id);
-                                                    setTargetTaskId(task.task_id);
-                                                    setIsDelete(true);
-                                                }}>Delete</button>
+                                        <button
+                                            className={styles.edit}
+                                            onClick={() => {
+                                                setTargetTask(task);
+                                                setIsEdit(true);
+                                            }}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            className={styles.delete}
+                                            onClick={() => {
+                                                setTargetTaskId(task.task_id);
+                                                setIsDelete(true);
+                                            }}
+                                        >
+                                            Delete
+                                        </button>
                                     </li>
                                 ))}
                             </ul>
                         )}
                     </div>
 
-                    <button className={styles.addBtn}
-                            onClick={()=>setIsAddClicked(true)}>Add Task</button>
+                    <button
+                        className={styles.addBtn}
+                        onClick={() => setIsAddClicked(true)}
+                    >
+                        Add Task
+                    </button>
                 </div>
             </div>
 
@@ -166,16 +181,21 @@ export default function TaskModal({ flower, onClose }) {
 
             {isDelete && (
                 <DeleteResponse
-                    onClose={() => {
-                        console.log('Delete cancelled');
-                        setIsDelete(false);
-                    }}
+                    onClose={() => setIsDelete(false)}
                     onConfirm={() => handleDeleteTask(targetTaskId)}
                 />
             )}
 
-            {isAddClicked && (<AddResponse onClose={()=>setIsAddClicked(false)} flower={flower}/>)}
-            {isDeleteSuccess && <DeleteSuccessful onClose={() => setIsDeleteSuccess(false)} />}
+            {isAddClicked && (
+                <AddResponse
+                    onClose={handleAddTask}
+                    flower={flower}
+                />
+            )}
+
+            {isDeleteSuccess && (
+                <DeleteSuccessful onClose={() => setIsDeleteSuccess(false)} />
+            )}
         </>
     );
 }

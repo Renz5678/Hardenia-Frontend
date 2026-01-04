@@ -1,7 +1,12 @@
-import { useState, useEffect } from 'react';
+import {useState, useEffect} from 'react';
 import styles from './EditResponse.module.css'
+import {useAuth} from '../../../../../../../../../contexts/AuthContext.jsx'
+
+const API_BASE_URL = 'https://flower-backend-latest-8vkl.onrender.com';
+const STAGES = ['SEED', 'SEEDLING', 'BUDDING', 'WILTING', 'BLOOMING'];
 
 export default function EditResponse({ flower, onClose, onSave }) {
+    const { getToken } = useAuth();
     const [formData, setFormData] = useState({
         flowerName: '',
         height: 0,
@@ -12,33 +17,24 @@ export default function EditResponse({ flower, onClose, onSave }) {
     });
     const [showSuccess, setShowSuccess] = useState(false);
     const [growthId, setGrowthId] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
-        if (flower) {
-            setFormData({
-                flowerName: flower.flowerName || '',
-                height: flower.height || 0,
-                waterFrequencyDays: flower.waterFrequencyDays || 0,
-                fertilizeFrequencyDays: flower.fertilizeFrequencyDays || 0,
-                pruneFrequencyDays: flower.pruneFrequencyDays || 0,
-                stage: flower.stage || 'SEED'
-            });
-
-            // Fetch growth details to get the growth_id
-            fetchGrowthDetails();
-        }
-    }, [flower]);
-
+    // Fetch growth details
     const fetchGrowthDetails = async () => {
         try {
-            const response = await fetch(`https://flower-backend-latest-8vkl.onrender.com/growth/flower/${flower.flower_id}`);
+            const token = await getToken();
+            const response = await fetch(`${API_BASE_URL}/growth/flower/${flower.flower_id}`, {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
             if (response.ok) {
                 const growthData = await response.json();
-                // Assuming the API returns either a single object or an array
                 const growth = Array.isArray(growthData) ? growthData[0] : growthData;
-                if (growth && growth.growth_id) {
+
+                if (growth?.growth_id) {
                     setGrowthId(growth.growth_id);
-                    // Set the height from the fetched growth data
                     setFormData(prev => ({
                         ...prev,
                         height: growth.height || 0,
@@ -51,30 +47,47 @@ export default function EditResponse({ flower, onClose, onSave }) {
         }
     };
 
+    // Initialize form data
+    useEffect(() => {
+        if (flower) {
+            setFormData({
+                flowerName: flower.flowerName || '',
+                height: flower.height || 0,
+                waterFrequencyDays: flower.waterFrequencyDays || 0,
+                fertilizeFrequencyDays: flower.fertilizeFrequencyDays || 0,
+                pruneFrequencyDays: flower.pruneFrequencyDays || 0,
+                stage: flower.stage || 'SEED'
+            });
+
+            fetchGrowthDetails();
+        }
+    }, [flower]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
 
-        // Convert numeric fields to numbers
-        if (['height', 'waterFrequencyDays', 'fertilizeFrequencyDays', 'pruneFrequencyDays'].includes(name)) {
-            setFormData(prev => ({
-                ...prev,
-                [name]: parseFloat(value) || 0
-            }));
-        } else {
-            setFormData(prev => ({
-                ...prev,
-                [name]: value
-            }));
-        }
+        const numericFields = ['height', 'waterFrequencyDays', 'fertilizeFrequencyDays', 'pruneFrequencyDays'];
+
+        setFormData(prev => ({
+            ...prev,
+            [name]: numericFields.includes(name) ? (parseFloat(value) || 0) : value
+        }));
     };
 
     const handleSubmit = async () => {
+        if (isSubmitting) return;
+
+        setIsSubmitting(true);
+
         try {
-            // Update plant details
-            const plantResponse = await fetch(`https://flower-backend-latest-8vkl.onrender.com/flowers/${flower.flower_id}`, {
+            const token = await getToken();
+
+            // Prepare update requests
+            const updatePlant = fetch(`${API_BASE_URL}/flowers/${flower.flower_id}`, {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
                     ...flower,
@@ -85,31 +98,32 @@ export default function EditResponse({ flower, onClose, onSave }) {
                 })
             });
 
+            const updateGrowth = growthId ? fetch(`${API_BASE_URL}/growth/${growthId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    flower_id: flower.flower_id,
+                    stage: formData.stage,
+                    height: formData.height,
+                    colorChanges: flower.colorChanges || true,
+                    notes: flower.notes || '',
+                    recordedAt: new Date().toISOString(),
+                    growthSinceLast: 0
+                })
+            }) : Promise.resolve({ ok: true });
+
+            // Execute both requests in parallel
+            const [plantResponse, growthResponse] = await Promise.all([updatePlant, updateGrowth]);
+
             if (!plantResponse.ok) {
                 throw new Error('Failed to update plant details');
             }
 
-            // Update growth details using the correct growth_id
-            if (growthId) {
-                const growthResponse = await fetch(`https://flower-backend-latest-8vkl.onrender.com/growth/${growthId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        flower_id: flower.flower_id,
-                        stage: formData.stage,
-                        height: formData.height,
-                        colorChanges: flower.colorChanges || true,
-                        notes: flower.notes || '',
-                        recordedAt: new Date().toISOString(),
-                        growthSinceLast: 0
-                    })
-                });
-
-                if (!growthResponse.ok) {
-                    throw new Error('Failed to update growth details');
-                }
+            if (!growthResponse.ok) {
+                throw new Error('Failed to update growth details');
             }
 
             const updatedPlant = await plantResponse.json();
@@ -117,22 +131,21 @@ export default function EditResponse({ flower, onClose, onSave }) {
             // Show success message
             setShowSuccess(true);
 
-            // Hide success message after 2 seconds and close modal
+            // Close modal after 2 seconds
             setTimeout(() => {
                 setShowSuccess(false);
                 onSave(updatedPlant);
                 onClose();
-                // Reload the page to reflect changes
                 window.location.reload();
             }, 2000);
 
         } catch (error) {
             console.error('Error updating flower:', error);
             alert('Failed to update flower: ' + error.message);
+        } finally {
+            setIsSubmitting(false);
         }
     };
-
-    const stages = ['SEED', 'SEEDLING', 'BUDDING', 'WILTING', 'BLOOMING'];
 
     return (
         <div className={styles.editModal}>
@@ -177,7 +190,7 @@ export default function EditResponse({ flower, onClose, onSave }) {
                         onChange={handleChange}
                         required
                     >
-                        {stages.map(stage => (
+                        {STAGES.map(stage => (
                             <option key={stage} value={stage}>{stage}</option>
                         ))}
                     </select>
@@ -226,10 +239,20 @@ export default function EditResponse({ flower, onClose, onSave }) {
                 </div>
 
                 <div className={styles.buttonGroup}>
-                    <button type="button" className={styles.saveButton} onClick={handleSubmit}>
-                        Save Changes
+                    <button
+                        type="button"
+                        className={styles.saveButton}
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? 'Saving...' : 'Save Changes'}
                     </button>
-                    <button type="button" className={styles.cancelButton} onClick={onClose}>
+                    <button
+                        type="button"
+                        className={styles.cancelButton}
+                        onClick={onClose}
+                        disabled={isSubmitting}
+                    >
                         Cancel
                     </button>
                 </div>

@@ -31,6 +31,8 @@ import stageTwoBush from './PlantDetails/FlowerPhotos/Stages/BushStages/secondSt
 import stageThreeBush from './PlantDetails/FlowerPhotos/Stages/BushStages/thirdStage.png'
 import stageFourBush from './PlantDetails/FlowerPhotos/Stages/BushStages/fourthStage.png'
 
+
+import {useAuth} from '../../../../../contexts/AuthContext.jsx';
 // Flower images mapping
 const FLOWER_IMAGES = {
     sunflower,
@@ -59,6 +61,7 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
     const [maintenanceData, setMaintenanceData] = useState([]);
     const boxRef = useRef(null);
     const detailsRef = useRef(null);
+    const {getToken} = useAuth();
 
     const getFlowerImage = (species, percentage = 0) => {
         if (!species) {
@@ -90,7 +93,12 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
         if (!flowerId) return;
 
         try {
-            const response = await fetch(`${API_BASE_URL}/maintenance/flower/${flowerId}`);
+            const token = await getToken();
+            const response = await fetch(`${API_BASE_URL}/maintenance/flower/${flowerId}`, {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
             if (response.ok) {
                 const data = await response.json();
                 setMaintenanceData(data);
@@ -103,33 +111,39 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
         }
     };
 
+    // Fetch growth data
+    const fetchGrowthData = async (flowerId, maxHeight) => {
+        try {
+            const token = await getToken();
+            const response = await fetch(`${API_BASE_URL}/growth/flower/${flowerId}`, {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+            if (response.ok) {
+                const growthData = await response.json();
+
+                if (growthData && growthData.length > 0) {
+                    const latestGrowth = growthData[0];
+                    const max = maxHeight || 100;
+                    const percentage = (latestGrowth.height / max) * 100;
+                    setGrowthPercentage(Math.min(percentage, 100));
+
+                    console.log('PlantBox - Growth percentage:', percentage);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching growth data:', error);
+        }
+    };
+
     // Fetch growth data when component mounts or plant changes
     useEffect(() => {
         if (!plant || !plant.flower_id) return;
 
-        const fetchGrowthData = async () => {
-            try {
-                const response = await fetch(`${API_BASE_URL}/growth/flower/${plant.flower_id}`);
-                if (response.ok) {
-                    const growthData = await response.json();
-
-                    if (growthData && growthData.length > 0) {
-                        const latestGrowth = growthData[0];
-                        const maxHeight = plant.maxHeight || 100;
-                        const percentage = (latestGrowth.height / maxHeight) * 100;
-                        setGrowthPercentage(Math.min(percentage, 100));
-
-                        console.log('PlantBox - Growth percentage:', percentage);
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching growth data:', error);
-            }
-        };
-
-        fetchGrowthData();
+        fetchGrowthData(plant.flower_id, plant.maxHeight);
         fetchMaintenanceData(plant.flower_id);
-    }, [plant]);
+    }, [plant?.flower_id, plant?.maxHeight]);
 
     // Handle drag over - required to allow drop
     const handleDragOver = (e) => {
@@ -247,6 +261,8 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
         }
 
         try {
+            const token = await getToken();
+
             // Try different possible endpoints
             const possibleEndpoints = [
                 `${API_BASE_URL}/maintenance/${taskId}`,
@@ -261,7 +277,10 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
             for (const endpoint of possibleEndpoints) {
                 console.log('Trying endpoint:', endpoint);
                 response = await fetch(endpoint, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
                 });
 
                 console.log('Response status:', response.status);
@@ -294,8 +313,12 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
     // Delete flower
     const deleteFlower = async (flowerId) => {
         try {
+            const token = await getToken();
             const response = await fetch(`${API_BASE_URL}/flowers/${flowerId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
             });
 
             if (response.ok) {
