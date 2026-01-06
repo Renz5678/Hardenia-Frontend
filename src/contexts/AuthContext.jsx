@@ -58,9 +58,24 @@ export const AuthProvider = ({ children }) => {
     };
 
     const signOut = async () => {
-        const { error } = await supabase.auth.signOut();
-        if (error) throw error;
-    };
+        try {
+            // Check if there's an active session first
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (session) {
+                // Only attempt sign out if session exists
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+            }
+        } catch (error) {
+            // Log but don't block the sign out process
+            console.error('Sign out error:', error);
+        } finally {
+            // ALWAYS clean up and redirect, regardless of errors
+            localStorage.clear();
+            window.location.href = '/login';
+        }
+    }
 
     // Get the current JWT token
     const getToken = async () => {
