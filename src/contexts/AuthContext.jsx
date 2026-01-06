@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }) => {
         } finally {
             // ALWAYS clean up and redirect, regardless of errors
             localStorage.clear();
-            window.location.href = '/login';
+            window.location.href = '/';
         }
     }
 
