@@ -7,14 +7,18 @@
     bottom: 27%;
     right: 2rem;
     position: fixed;
-    padding: 2rem 1rem 0 1rem;
+    padding: 2.5rem 1rem 0 1rem;
     display: flex;
     justify-content: center;
     flex-direction: row;
-    align-items: flex-end;
+    align-items: center;
     gap: 1rem;
 }
 
 .tools {
     max-height: 4rem;
+}
+
+.tools:hover {
+    transform: scale(1.25);
 }

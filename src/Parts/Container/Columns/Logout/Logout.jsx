@@ -13,7 +13,8 @@ export default function Logout() {
     }
     return (
         <>
-            <button className={styles.logoutBtn}>
+            <button className={styles.logoutBtn}
+                    onClick={()=>handleLogout()}>
                 Log Out :)
             </button>
         </>

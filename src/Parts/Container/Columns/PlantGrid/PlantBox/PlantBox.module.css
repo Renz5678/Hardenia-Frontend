@@ -15,6 +15,7 @@
     color: #dfe7ec;
     padding: 4px;
     cursor: pointer;
+    position: relative;
 }
 
 .plantBox h1 {
@@ -150,4 +151,18 @@
     100% {
         transform: scale(1);
     }
+}
+
+.insectImage {
+    position: absolute;
+    max-height: 50%;
+    top: 25%;
+}
+
+.plantName {
+    position: absolute;
+    bottom: 4px;
+    font-size: 0.7rem;
+    text-align: center;
+    padding: 4px;
 }

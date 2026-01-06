@@ -30,7 +30,7 @@ import stageOneBush from './PlantDetails/FlowerPhotos/Stages/BushStages/firstSta
 import stageTwoBush from './PlantDetails/FlowerPhotos/Stages/BushStages/secondStage.png'
 import stageThreeBush from './PlantDetails/FlowerPhotos/Stages/BushStages/thirdStage.png'
 import stageFourBush from './PlantDetails/FlowerPhotos/Stages/BushStages/fourthStage.png'
-
+import pest from './pest.png'
 
 import {useAuth} from '../../../../../contexts/AuthContext.jsx';
 // Flower images mapping
@@ -59,6 +59,7 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
     const [showDetails, setShowDetails] = useState(false);
     const [growthPercentage, setGrowthPercentage] = useState(0);
     const [maintenanceData, setMaintenanceData] = useState([]);
+    const [hasPestControl, setHasPestControl] = useState(false);
     const boxRef = useRef(null);
     const detailsRef = useRef(null);
     const {getToken} = useAuth();
@@ -88,6 +89,20 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
         }
     }
 
+    // Check if there's a PEST_CONTROL task
+    const checkForPestControl = (maintenanceList) => {
+        if (!maintenanceList || maintenanceList.length === 0) {
+            setHasPestControl(false);
+            return;
+        }
+
+        const hasPest = maintenanceList.some(task =>
+            task.maintenanceType === 'PEST_CONTROL'
+        );
+
+        setHasPestControl(hasPest);
+    };
+
     // Fetch maintenance data
     const fetchMaintenanceData = async (flowerId) => {
         if (!flowerId) return;
@@ -102,6 +117,7 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
             if (response.ok) {
                 const data = await response.json();
                 setMaintenanceData(data);
+                checkForPestControl(data);
                 console.log('PlantBox - Maintenance data:', data);
             } else {
                 console.error('Failed to fetch maintenance data');
@@ -137,12 +153,19 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
         }
     };
 
-    // Fetch growth data when component mounts or plant changes
-    useEffect(() => {
+    // Reload all data
+    const reloadData = async () => {
         if (!plant || !plant.flower_id) return;
 
-        fetchGrowthData(plant.flower_id, plant.maxHeight);
-        fetchMaintenanceData(plant.flower_id);
+        await Promise.all([
+            fetchGrowthData(plant.flower_id, plant.maxHeight),
+            fetchMaintenanceData(plant.flower_id)
+        ]);
+    };
+
+    // Fetch growth data when component mounts or plant changes
+    useEffect(() => {
+        reloadData();
     }, [plant?.flower_id, plant?.maxHeight]);
 
     // Handle drag over - required to allow drop
@@ -296,8 +319,8 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
 
             if (response.ok) {
                 console.log('Successfully deleted task using endpoint:', successfulEndpoint);
-                // Refresh maintenance data after deletion
-                await fetchMaintenanceData(plant.flower_id);
+                // Reload data after deletion
+                await reloadData();
                 return true;
             } else {
                 const errorText = await response.text();
@@ -467,6 +490,13 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
                     transition: 'box-shadow 0.3s ease'
                 }}
             >
+                {hasPestControl && plant && (
+                    <img
+                        src={pest}
+                        className={styles.insectImage}
+                        alt="pest"
+                    />
+                )}
                 {plant ? (
                     <>
                         <img
@@ -478,6 +508,7 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
                             }}
                         />
 
+                        <h2 className={styles.plantName}>{plant.flowerName}</h2>
                         {currentAction && getActionIcon() && (
                             <div className={styles.actionFeedback}>
                                 <img

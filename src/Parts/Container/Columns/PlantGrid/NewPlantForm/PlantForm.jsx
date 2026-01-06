@@ -17,56 +17,49 @@ const API_BASE_URL = "https://flower-backend-latest-8vkl.onrender.com";
 const FLOWER_CARE_TEMPLATES = {
     sunflower: {
         waterFrequencyDays: 2,
-        fertilizeFrequencyDays: 42, // 6 weeks
-        pruneFrequencyDays: 21,     // default
+        fertilizeFrequencyDays: 42,
+        pruneFrequencyDays: 21,
         sunlightFrequencyDays: 1
     },
-
     zinnia: {
         waterFrequencyDays: 3,
-        fertilizeFrequencyDays: 21, // 3 weeks
-        pruneFrequencyDays: 21,     // default
+        fertilizeFrequencyDays: 21,
+        pruneFrequencyDays: 21,
         sunlightFrequencyDays: 1
     },
-
     marigold: {
         waterFrequencyDays: 4,
-        fertilizeFrequencyDays: 21, // 3 weeks
-        pruneFrequencyDays: 21,     // default
+        fertilizeFrequencyDays: 21,
+        pruneFrequencyDays: 21,
         sunlightFrequencyDays: 1
     },
-
     cosmos: {
         waterFrequencyDays: 7,
-        fertilizeFrequencyDays: 28, // 4 weeks
-        pruneFrequencyDays: 21,     // default
+        fertilizeFrequencyDays: 28,
+        pruneFrequencyDays: 21,
         sunlightFrequencyDays: 1
     },
-
-    hibiscus: { // Gumamela
+    hibiscus: {
         waterFrequencyDays: 7,
-        fertilizeFrequencyDays: 21, // 3 weeks
-        pruneFrequencyDays: 30,     // shrubs need pruning
-        sunlightFrequencyDays: 1
-    },
-
-    sampaguita: {
-        waterFrequencyDays: 7,
-        fertilizeFrequencyDays: 28, // 4 weeks
+        fertilizeFrequencyDays: 21,
         pruneFrequencyDays: 30,
         sunlightFrequencyDays: 1
     },
-
+    sampaguita: {
+        waterFrequencyDays: 7,
+        fertilizeFrequencyDays: 28,
+        pruneFrequencyDays: 30,
+        sunlightFrequencyDays: 1
+    },
     anthurium: {
         waterFrequencyDays: 3,
-        fertilizeFrequencyDays: 42, // 6 weeks
+        fertilizeFrequencyDays: 42,
         pruneFrequencyDays: 60,
-        sunlightFrequencyDays: 2    // indirect light
+        sunlightFrequencyDays: 2
     },
-
     kalachuchi: {
         waterFrequencyDays: 8,
-        fertilizeFrequencyDays: 105, // 15 weeks
+        fertilizeFrequencyDays: 105,
         pruneFrequencyDays: 60,
         sunlightFrequencyDays: 1
     }
@@ -74,46 +67,38 @@ const FLOWER_CARE_TEMPLATES = {
 
 const FLOWER_GROWTH_TEMPLATES = {
     sunflower: {
-        maxHeight: 200,  // cm
-        growthRate: 7.0  // % per week (stage per 3 weeks)
+        maxHeight: 200,
+        growthRate: 7.0
     },
-
     zinnia: {
         maxHeight: 90,
-        growthRate: 12.0 // % per week (stage per 2 weeks)
+        growthRate: 12.0
     },
-
     marigold: {
         maxHeight: 60,
-        growthRate: 12.0 // % per week (stage per 2 weeks)
+        growthRate: 12.0
     },
-
     cosmos: {
         maxHeight: 120,
-        growthRate: 10.0 // % per week (stage per 2 weeks)
+        growthRate: 10.0
     },
-
-    hibiscus: { // Gumamela
+    hibiscus: {
         maxHeight: 250,
-        growthRate: 13.0 // % per week (stage per 2 weeks)
+        growthRate: 13.0
     },
-
     sampaguita: {
         maxHeight: 180,
-        growthRate: 10.0 // % per week (stage per 2 weeks)
+        growthRate: 10.0
     },
-
     anthurium: {
         maxHeight: 45,
-        growthRate: 7.0  // % per week (stage per 3 weeks)
+        growthRate: 7.0
     },
-
     kalachuchi: {
         maxHeight: 600,
-        growthRate: 3.0  // % per week (stage per 7 weeks)
+        growthRate: 3.0
     }
 };
-
 
 const FLOWER_IMAGES = {
     sunflower, anthurium, hibiscus, kalachuchi, zinnias,
@@ -178,6 +163,34 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
         }
 
         return true;
+    };
+
+    const handleHeightChange = (e) => {
+        let value = e.target.value;
+
+        // Allow empty value for user to clear the field
+        if (value === "") {
+            setFormData(prev => ({ ...prev, height: "" }));
+            return;
+        }
+
+        const numValue = parseFloat(value);
+
+        // Get the max height for the selected flower type
+        const maxHeight = FLOWER_GROWTH_TEMPLATES[formData.plantType.toLowerCase()]?.maxHeight;
+
+        if (maxHeight && numValue > maxHeight) {
+            // Limit to max height
+            value = maxHeight.toString();
+            showModal("error", `Maximum height for ${formData.plantType} is ${maxHeight} cm`);
+
+            // Auto-close the modal after 2 seconds
+            setTimeout(() => {
+                setModal({ show: false, type: "", message: "" });
+            }, 1500);
+        }
+
+        setFormData(prev => ({ ...prev, height: value }));
     };
 
     const createMaintenanceTasks = async (flowerId, careTemplate, plantName, token) => {
@@ -247,7 +260,6 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
         setIsSubmitting(true);
 
         try {
-            // Get the token from your auth context
             const token = await getToken();
 
             const response = await fetch(`${API_BASE_URL}/flowers`, {
@@ -264,7 +276,6 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
             const flowerData = await response.json();
             const flowerId = flowerData.flower_id;
 
-            // Add growth details
             try {
                 await fetch(`${API_BASE_URL}/growth`, {
                     method: "POST",
@@ -284,7 +295,6 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
                 console.error("Growth details failed:", error);
             }
 
-            // Create maintenance tasks
             let maintenanceTasks = [];
             try {
                 await new Promise(resolve => setTimeout(resolve, 500));
@@ -315,6 +325,11 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
             setIsSubmitting(false);
         }
     };
+
+    // Get max height for display
+    const maxHeight = formData.plantType
+        ? FLOWER_GROWTH_TEMPLATES[formData.plantType.toLowerCase()]?.maxHeight
+        : null;
 
     return (
         <>
@@ -348,7 +363,8 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
                                 onChange={(e) => setFormData(prev => ({
                                     ...prev,
                                     plantType: e.target.value,
-                                    plantImage: FLOWER_IMAGES[e.target.value] || placeholder
+                                    plantImage: FLOWER_IMAGES[e.target.value] || placeholder,
+                                    height: "" // Reset height when type changes
                                 }))}
                             >
                                 <option value="">Select a plant</option>
@@ -383,15 +399,17 @@ export default function PlantForm({ onClose, gridPosition, onPlantAdded }) {
                                 ))}
                             </select>
 
-                            <h2>Height (cm)</h2>
+                            <h2>Height (cm) {maxHeight && `(max: ${maxHeight})`}</h2>
                             <input
                                 value={formData.height}
-                                maxLength={5}
+                                maxLength={6}
                                 type="number"
                                 step="0.01"
                                 min="0.01"
-                                placeholder="e.g., 25.50"
-                                onChange={(e) => setFormData(prev => ({...prev, height: e.target.value}))}
+                                max={maxHeight || undefined}
+                                placeholder={maxHeight ? `e.g., 25.50 (max: ${maxHeight})` : "Select a plant type first"}
+                                disabled={!formData.plantType}
+                                onChange={handleHeightChange}
                             />
 
                             <h2>Planting Date</h2>
