@@ -2,7 +2,7 @@ import styles from './OverviewBar.module.css'
 import grass from './Grass.png'
 import NumberOfPlants from "./TaskPosting/NumberOfPlants.jsx";
 import NextDueTask from "./TaskPosting/NextDueTask.jsx";
-import MostStages from "./TaskPosting/MostStages.jsx";
+import MostStages from "./TaskPosting/OverdueTasks.jsx";
 
 export default function OverviewBar() {
     return (

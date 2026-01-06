@@ -166,3 +166,39 @@
     text-align: center;
     padding: 4px;
 }
+
+.status {
+    position: absolute;
+    max-height: 4rem;
+}
+
+.needsSunGif,
+.needsWaterGif,
+.dead {
+    position: absolute;
+    max-height: 4rem;
+}
+
+.dead {
+    max-height: 5rem;
+    top: 0;
+}
+
+.deadModal {
+    position: fixed;
+    z-index: 999999;
+    height: 40vh;
+    width: 30vw;
+    top: 30%;
+    left: 35%;
+    background: #e38a31;
+    border: #603308 1rem solid;
+    padding: 1rem;
+    font-size: 2rem;
+    text-align: center;
+    font-weight: 750;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: black;
+}

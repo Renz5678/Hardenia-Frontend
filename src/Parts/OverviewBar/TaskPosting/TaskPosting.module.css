@@ -2,7 +2,8 @@
 
 .taskPosting,
 .nextDueTask,
-.mostStages {
+.mostStages,
+.overdueTasks {
     font-family: "Architects Daughter", cursive;
     height: 55%;
     width: 50%;
@@ -18,18 +19,25 @@
     font-weight: 750;
 }
 
-.nextDueTask {
+.nextDueTask,
+.overdueTasks {
     flex-direction: column;
     line-height: 1rem;
     padding-left: 0;
     font-size: 1.1rem;
 }
 
-.nextDueTask h3 {
+.nextDueTask h3,
+.overdueTasks h3{
     font-size: 1rem;
 }
 
 .mostStages {
     font-size: 0.9rem;
     padding-left: 16px;
+}
+
+.overdueTasks {
+    font-size: 0.8rem;
+    text-align: center;
 }

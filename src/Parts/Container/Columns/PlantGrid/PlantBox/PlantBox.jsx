@@ -32,7 +32,16 @@ import stageThreeBush from './PlantDetails/FlowerPhotos/Stages/BushStages/thirdS
 import stageFourBush from './PlantDetails/FlowerPhotos/Stages/BushStages/fourthStage.png'
 import pest from './pest.png'
 
+import Happy from './Status/Happy.png';
+import Neutral from './Status/Annoyed.png';
+import Sad from './Status/Sad.png'
+
+import SunGIF from './Needs/Sun.gif';
+import WaterGIF from './Needs/Water.gif'
+import DeadGIF from './Status/dead status_animation.gif';
+
 import {useAuth} from '../../../../../contexts/AuthContext.jsx';
+
 // Flower images mapping
 const FLOWER_IMAGES = {
     sunflower,
@@ -51,31 +60,69 @@ const BUSH_SPECIES = ['cosmos', 'sampaguita'];
 
 const API_BASE_URL = 'https://flower-backend-latest-8vkl.onrender.com';
 
+// Action icons mapping
+const ACTION_ICONS = {
+    water: PouringWateringCan,
+    fertilize: Fertilize,
+    prune: OpenScissors,
+    spray: SprayingSprayCan,
+    repot: DirtyShovel,
+    sun: Sun
+};
+
+// Map tool types to maintenance types
+const MAINTENANCE_TYPE_MAPPING = {
+    'water': 'WATERING',
+    'fertilize': 'FERTILIZING',
+    'sun': 'SUNLIGHT',
+    'spray': 'PEST_CONTROL',
+    'prune': 'PRUNING'
+};
+
+// Map tool types to action names
+const ACTION_NAMES = {
+    'water': 'watering',
+    'fertilize': 'fertilizing',
+    'sun': 'sunlight',
+    'spray': 'pest control',
+    'prune': 'pruning'
+};
+
+// Status states
+const STATUS_STATES = {
+    HAPPY: 'happy',
+    NEUTRAL: 'neutral',
+    SAD: 'sad'
+};
+
 export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, onUpdate }) {
     const [isEnlarged, setIsEnlarged] = useState(false);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const [currentAction, setCurrentAction] = useState(null);
     const [showEmptyWarning, setShowEmptyWarning] = useState(false);
+    const [showDeadModal, setIsShowDeadModal] = useState(false);
     const [showDetails, setShowDetails] = useState(false);
     const [growthPercentage, setGrowthPercentage] = useState(0);
     const [maintenanceData, setMaintenanceData] = useState([]);
     const [hasPestControl, setHasPestControl] = useState(false);
+    const [plantStatus, setPlantStatus] = useState(STATUS_STATES.HAPPY);
+    const [showStatus, setShowStatus] = useState(false);
+    const [needsWater, setNeedsWater] = useState(false);
+    const [needsSun, setNeedsSun] = useState(false);
+    const [isDead, setIsDead] = useState(false);
     const boxRef = useRef(null);
     const detailsRef = useRef(null);
     const {getToken} = useAuth();
 
     const getFlowerImage = (species, percentage = 0) => {
         if (!species) {
-            console.log('No species provided for plant');
             return sunflower;
         }
 
         const lowerCaseName = species.toLowerCase().trim();
         const isBush = BUSH_SPECIES.includes(lowerCaseName);
 
-        if (percentage < 20) {
-            return isBush ? stageOneBush : stageOne;
-        } else if (percentage < 40) {
+        if (percentage < 40) {
             return isBush ? stageOneBush : stageOne;
         } else if (percentage < 60) {
             return isBush ? stageTwoBush : stageTwo;
@@ -84,10 +131,94 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
         } else if (percentage < 100) {
             return isBush ? stageFourBush : stageFour;
         } else {
-            const image = FLOWER_IMAGES[lowerCaseName];
-            return image || sunflower;
+            return FLOWER_IMAGES[lowerCaseName] || sunflower;
         }
     }
+
+    // Get status image based on plant status
+    const getStatusImage = () => {
+        switch (plantStatus) {
+            case STATUS_STATES.HAPPY:
+                return Happy;
+            case STATUS_STATES.NEUTRAL:
+                return Neutral;
+            case STATUS_STATES.SAD:
+                return Sad;
+            default:
+                return Happy;
+        }
+    };
+
+    // Check for water and sun tasks due today or earlier
+    const checkTaskNeeds = (maintenanceList) => {
+        if (!maintenanceList || maintenanceList.length === 0) {
+            setNeedsWater(false);
+            setNeedsSun(false);
+            return;
+        }
+
+        const now = new Date();
+        const todayString = now.toISOString().split('T')[0];
+
+        let hasWaterTask = false;
+        let hasSunTask = false;
+
+        maintenanceList.forEach(task => {
+            if (!task.maintenanceDate) return;
+
+            const scheduledDate = new Date(task.maintenanceDate);
+            const scheduledDateString = scheduledDate.toISOString().split('T')[0];
+
+            // Check if task is due today or earlier (overdue)
+            const isDueOrOverdue = scheduledDateString <= todayString;
+
+            if (isDueOrOverdue) {
+                if (task.maintenanceType === 'WATERING') {
+                    hasWaterTask = true;
+                } else if (task.maintenanceType === 'SUNLIGHT') {
+                    hasSunTask = true;
+                }
+            }
+        });
+
+        setNeedsWater(hasWaterTask);
+        setNeedsSun(hasSunTask);
+    };
+
+    // Calculate plant status based on maintenance tasks
+    const calculatePlantStatus = (maintenanceList) => {
+        if (!maintenanceList || maintenanceList.length === 0) {
+            setPlantStatus(STATUS_STATES.HAPPY);
+            return;
+        }
+
+        const now = new Date();
+        const todayString = now.toISOString().split('T')[0];
+
+        let hasOverdue = false;
+        let hasDueToday = false;
+
+        maintenanceList.forEach(task => {
+            if (!task.maintenanceDate) return;
+
+            const scheduledDate = new Date(task.maintenanceDate);
+            const scheduledDateString = scheduledDate.toISOString().split('T')[0];
+
+            if (scheduledDateString < todayString) {
+                hasOverdue = true;
+            } else if (scheduledDateString === todayString) {
+                hasDueToday = true;
+            }
+        });
+
+        if (hasOverdue) {
+            setPlantStatus(STATUS_STATES.SAD);
+        } else if (hasDueToday) {
+            setPlantStatus(STATUS_STATES.NEUTRAL);
+        } else {
+            setPlantStatus(STATUS_STATES.HAPPY);
+        }
+    };
 
     // Check if there's a PEST_CONTROL task
     const checkForPestControl = (maintenanceList) => {
@@ -118,7 +249,8 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
                 const data = await response.json();
                 setMaintenanceData(data);
                 checkForPestControl(data);
-                console.log('PlantBox - Maintenance data:', data);
+                calculatePlantStatus(data);
+                checkTaskNeeds(data);
             } else {
                 console.error('Failed to fetch maintenance data');
             }
@@ -129,6 +261,8 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
 
     // Fetch growth data
     const fetchGrowthData = async (flowerId, maxHeight) => {
+        if (!flowerId) return;
+
         try {
             const token = await getToken();
             const response = await fetch(`${API_BASE_URL}/growth/flower/${flowerId}`, {
@@ -144,8 +278,7 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
                     const max = maxHeight || 100;
                     const percentage = (latestGrowth.height / max) * 100;
                     setGrowthPercentage(Math.min(percentage, 100));
-
-                    console.log('PlantBox - Growth percentage:', percentage);
+                    setIsDead(latestGrowth.stage === "Dead");
                 }
             }
         } catch (error) {
@@ -155,7 +288,7 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
 
     // Reload all data
     const reloadData = async () => {
-        if (!plant || !plant.flower_id) return;
+        if (!plant?.flower_id) return;
 
         await Promise.all([
             fetchGrowthData(plant.flower_id, plant.maxHeight),
@@ -163,7 +296,7 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
         ]);
     };
 
-    // Fetch growth data when component mounts or plant changes
+    // Fetch data when component mounts or plant changes
     useEffect(() => {
         reloadData();
     }, [plant?.flower_id, plant?.maxHeight]);
@@ -197,54 +330,41 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
         }
 
         const toolType = e.dataTransfer.getData('toolType');
-        const toolId = e.dataTransfer.getData('toolId');
+
+        // Prevent any action except repot if plant is dead
+        if (isDead && toolType !== 'repot') {
+            alert(`${plant.flowerName} is dead. Please remove it from the garden using the repot tool.`);
+            return;
+        }
 
         if (toolType) {
-            performAction(toolType, toolId);
+            performAction(toolType);
         }
     };
 
-    // Map tool types to maintenance types
+    // Get maintenance type from tool type
     const getMaintenanceType = (toolType) => {
-        const mapping = {
-            'water': 'WATERING',
-            'fertilize': 'FERTILIZING',
-            'sun': 'SUNLIGHT',
-            'spray': 'PEST_CONTROL',
-            'prune': 'PRUNING'
-        };
-        return mapping[toolType];
+        return MAINTENANCE_TYPE_MAPPING[toolType];
     };
 
-    // Check if there's a task scheduled for today
     const checkTodayTask = (toolType) => {
         const maintenanceType = getMaintenanceType(toolType);
 
         if (!maintenanceType) {
-            console.log('No maintenance type found for tool:', toolType);
             return null;
         }
 
         if (!maintenanceData || maintenanceData.length === 0) {
-            console.log('No maintenance data available');
             return null;
         }
 
-        // Get today's date at midnight in local timezone
+        // Get today's date in YYYY-MM-DD format for comparison
         const now = new Date();
-        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        const todayString = now.toISOString().split('T')[0];
 
-        console.log('Checking for task:', {
-            toolType,
-            maintenanceType,
-            todayStart: todayStart.toISOString(),
-            todayEnd: todayEnd.toISOString()
-        });
-
-        // Find a maintenance task that matches the tool type and is scheduled for today
+        // Find a maintenance task that matches the tool type and is scheduled for today or earlier (overdue)
         const todayTask = maintenanceData.find(task => {
-            // Use camelCase field names to match your backend
+            // Check maintenance type
             if (task.maintenanceType !== maintenanceType) {
                 return false;
             }
@@ -253,31 +373,22 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
                 return false;
             }
 
-            // Parse the scheduled date
+            // Parse the scheduled date and get YYYY-MM-DD format
             const scheduledDate = new Date(task.maintenanceDate);
+            const scheduledDateString = scheduledDate.toISOString().split('T')[0];
 
-            // Check if the scheduled date falls within today
-            const isToday = scheduledDate >= todayStart && scheduledDate <= todayEnd;
+            // Check if scheduled date is today or before today (overdue)
+            const isToday = scheduledDateString === todayString;
+            const isOverdue = scheduledDateString < todayString;
 
-            console.log('Checking task:', {
-                taskId: task.task_id,
-                taskType: task.maintenanceType,
-                scheduledDate: scheduledDate.toISOString(),
-                isToday
-            });
-
-            return isToday;
+            return isToday || isOverdue;
         });
 
-        console.log('Found task:', todayTask);
-        console.log('Task ID:', todayTask?.task_id);
         return todayTask;
     };
 
     // Delete maintenance task
     const deleteMaintenanceTask = async (taskId) => {
-        console.log('deleteMaintenanceTask called with taskId:', taskId);
-
         if (!taskId) {
             console.error('No taskId provided to deleteMaintenanceTask');
             return false;
@@ -285,42 +396,16 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
 
         try {
             const token = await getToken();
+            const endpoint = `${API_BASE_URL}/maintenance/${taskId}`;
 
-            // Try different possible endpoints
-            const possibleEndpoints = [
-                `${API_BASE_URL}/maintenance/${taskId}`,
-                `${API_BASE_URL}/maintenance/task/${taskId}`,
-                `${API_BASE_URL}/tasks/${taskId}`
-            ];
-
-            let response;
-            let successfulEndpoint;
-
-            // Try each endpoint until one works
-            for (const endpoint of possibleEndpoints) {
-                console.log('Trying endpoint:', endpoint);
-                response = await fetch(endpoint, {
-                    method: 'DELETE',
-                    headers: {
-                        "Authorization": `Bearer ${token}`
-                    }
-                });
-
-                console.log('Response status:', response.status);
-
-                if (response.ok) {
-                    successfulEndpoint = endpoint;
-                    break;
-                } else if (response.status !== 405 && response.status !== 404) {
-                    // If it's not "Method Not Allowed" or "Not Found", stop trying
-                    break;
+            const response = await fetch(endpoint, {
+                method: 'DELETE',
+                headers: {
+                    "Authorization": `Bearer ${token}`
                 }
-            }
+            });
 
             if (response.ok) {
-                console.log('Successfully deleted task using endpoint:', successfulEndpoint);
-                // Reload data after deletion
-                await reloadData();
                 return true;
             } else {
                 const errorText = await response.text();
@@ -345,9 +430,6 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
             });
 
             if (response.ok) {
-                if (onDelete) {
-                    onDelete(index);
-                }
                 return true;
             } else {
                 console.error('Failed to delete flower');
@@ -361,65 +443,79 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
 
     // Perform the action based on tool type
     const performAction = async (toolType) => {
-        console.log('=== performAction called ===');
-        console.log('Tool type:', toolType);
-
-        // Handle repot (delete plant)
+        // Handle repot (delete plant) - allowed even for dead plants
         if (toolType === 'repot') {
             setCurrentAction(toolType);
-            const success = await deleteFlower(plant.flower_id);
-            if (success) {
-                alert(`${plant.flowerName} has been removed from the garden.`);
-            } else {
-                alert('Failed to remove plant. Please try again.');
-            }
-            setCurrentAction(null);
+
+            // Show immediate feedback with animation
+            setTimeout(async () => {
+                const success = await deleteFlower(plant.flower_id);
+                if (success) {
+                    // Call parent's onDelete immediately for instant UI update
+                    if (onDelete) {
+                        onDelete(index);
+                    }
+                    alert(`${plant.flowerName} has been removed from the garden.`);
+                } else {
+                    alert('Failed to remove plant. Please try again.');
+                    setCurrentAction(null);
+                }
+            }, 500); // Short delay to show animation
+            return;
+        }
+
+        // Prevent any other action if plant is dead
+        if (isDead) {
+            alert(`${plant.flowerName} is dead. You can only remove it using the repot tool.`);
             return;
         }
 
         // Check if there's a task for today
         const todayTask = checkTodayTask(toolType);
 
-        console.log('Today task result:', todayTask);
-        console.log('Task ID from result:', todayTask?.task_id);
-
         if (todayTask && todayTask.task_id) {
-            // Task exists for today - show animation and delete it
+            // Show animation immediately
             setCurrentAction(toolType);
 
-            console.log('About to delete task with ID:', todayTask.task_id);
+            // Perform deletion in background
+            setTimeout(async () => {
+                const success = await deleteMaintenanceTask(todayTask.task_id);
+                if (success) {
+                    // Update local state immediately
+                    const updatedTasks = maintenanceData.filter(task => task.task_id !== todayTask.task_id);
+                    setMaintenanceData(updatedTasks);
 
-            const success = await deleteMaintenanceTask(todayTask.task_id);
-            if (success) {
-                const actionName = getMaintenanceType(toolType).toLowerCase().replace('_', ' ');
-                alert(`✓ Task completed! ${actionName} done for ${plant.flowerName}.`);
+                    // Recalculate status immediately
+                    calculatePlantStatus(updatedTasks);
+                    checkTaskNeeds(updatedTasks);
+                    checkForPestControl(updatedTasks);
 
-                // Call onUpdate to refresh the parent component
-                if (onUpdate) {
-                    onUpdate();
+                    const actionName = getMaintenanceType(toolType).toLowerCase().replace('_', ' ');
+
+                    // Clear animation
+                    setCurrentAction(null);
+
+                    // Show success message
+                    alert(`✓ Task completed! ${actionName} done for ${plant.flowerName}.`);
+
+                    // Call parent's onUpdate if available for broader state sync
+                    if (onUpdate) {
+                        onUpdate(index, plant);
+                    }
+                } else {
+                    alert('Failed to complete task. Please try again.');
+                    setCurrentAction(null);
                 }
-            } else {
-                alert('Failed to complete task. Please try again.');
-            }
 
-            if (onToolUse) {
-                onToolUse(index, toolType, plant);
-            }
-
-            setTimeout(() => {
-                setCurrentAction(null);
-            }, 2000);
+                if (onToolUse) {
+                    onToolUse(index, toolType, plant);
+                }
+            }, 800); // Animation duration
         } else {
-            // No task scheduled for today - no animation
-            const actionName = toolType === 'water' ? 'watering' :
-                toolType === 'fertilize' ? 'fertilizing' :
-                    toolType === 'sun' ? 'sunlight' :
-                        toolType === 'spray' ? 'pest control' :
-                            toolType === 'prune' ? 'pruning' : toolType;
+            // No task scheduled for today
+            const actionName = ACTION_NAMES[toolType] || toolType;
             alert(`No ${actionName} task scheduled for ${plant.flowerName} today.`);
         }
-
-        console.log('=== performAction completed ===');
     };
 
     // Handle click outside
@@ -445,8 +541,24 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
         };
     }, [isEnlarged, showDetails]);
 
+    const handleDeadPlantCLick = () => {
+        setTimeout(() => {
+            setIsShowDeadModal(false);
+        }, 1500);
+    }
     const handleClick = () => {
         if (plant) {
+            if (isDead) {
+                setIsShowDeadModal(true);
+                handleDeadPlantCLick();
+                return;
+            }
+            // Show status for 1.5 seconds when clicked
+            setShowStatus(true);
+            setTimeout(() => {
+                setShowStatus(false);
+            }, 1500);
+
             setShowDetails(!showDetails);
             setIsEnlarged(!isEnlarged);
         } else {
@@ -461,17 +573,7 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
     // Get action icon based on tool type
     const getActionIcon = () => {
         if (!currentAction) return null;
-
-        const icons = {
-            water: PouringWateringCan,
-            fertilize: Fertilize,
-            prune: OpenScissors,
-            spray: SprayingSprayCan,
-            repot: DirtyShovel,
-            sun: Sun
-        };
-
-        return icons[currentAction];
+        return ACTION_ICONS[currentAction];
     };
 
     return (
@@ -509,6 +611,43 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
                         />
 
                         <h2 className={styles.plantName}>{plant.flowerName}</h2>
+
+                        {/* Show Water GIF if water task is due and plant is not dead */}
+                        {needsWater && !isDead && (
+                            <img
+                                src={WaterGIF}
+                                alt="needs water"
+                                className={styles.needsWaterGif}
+                            />
+                        )}
+
+                        {/* Show Sun GIF if sun task is due and plant is not dead */}
+                        {needsSun && !isDead && (
+                            <img
+                                src={SunGIF}
+                                alt="needs sun"
+                                className={styles.needsSunGif}
+                            />
+                        )}
+
+                        {/* Show Dead GIF only when plant is dead */}
+                        {isDead && (
+                            <img
+                                src={DeadGIF}
+                                alt="Dead"
+                                className={styles.dead}
+                            />
+                        )}
+
+                        {/* Show status only if plant is not dead */}
+                        {showStatus && !isDead && (
+                            <img
+                                src={getStatusImage()}
+                                alt="status"
+                                className={styles.status}
+                            />
+                        )}
+
                         {currentAction && getActionIcon() && (
                             <div className={styles.actionFeedback}>
                                 <img
@@ -541,6 +680,10 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
                     />
                 </div>
             )}
+
+            {showDeadModal && <div className={styles.deadModal}>
+                Flower is dead, please remove using shovel
+            </div>}
         </>
     )
 }

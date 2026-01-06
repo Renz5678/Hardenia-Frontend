@@ -1,33 +1,32 @@
 import styles from './TaskPosting.module.css'
-import {useState, useEffect} from "react";
+import {useEffect, useState} from "react";
 import {useAuth} from '../../../contexts/AuthContext.jsx'
 
-export default function NextDueTask() {
-    const [earliestTask, setEarliestTask] = useState(null);
+export default function OverdueTasks() {
+    const [earliestOverdueTask, setEarliestOverdueTask] = useState(null);
     const [loading, setLoading] = useState(true);
     const {getToken} = useAuth();
 
-    const getEarliestTask = (tasks) => {
+    const getEarliestOverdueTask = (tasks) => {
         if (!tasks || tasks.length === 0) return null;
 
         const now = new Date();
         const todayString = now.toISOString().split('T')[0];
 
-        // Filter tasks that are due today or in the future
-        const upcomingTasks = tasks.filter(task => {
+        const overdueTasks = tasks.filter(task => {
             if (!task.maintenanceDate) return false;
 
             const scheduledDate = new Date(task.maintenanceDate);
             const scheduledDateString = scheduledDate.toISOString().split('T')[0];
 
-            // Include tasks due today or later (not overdue)
-            return scheduledDateString >= todayString;
+            // Task is overdue if scheduled date is before today
+            return scheduledDateString < todayString;
         });
 
-        if (upcomingTasks.length === 0) return null;
+        if (overdueTasks.length === 0) return null;
 
-        // Get the earliest upcoming task
-        return upcomingTasks.reduce((earliest, current) =>
+        // Get the earliest overdue task
+        return overdueTasks.reduce((earliest, current) =>
             current.maintenanceDate < earliest.maintenanceDate ? current : earliest
         );
     }
@@ -45,10 +44,11 @@ export default function NextDueTask() {
                 throw new Error("Tasks failed to fetch");
 
             const tasks = await response.json();
-            const nextTask = getEarliestTask(tasks);
-            setEarliestTask(nextTask);
-        } catch (e) {
-            console.log(e);
+            const earliestOverdue = getEarliestOverdueTask(tasks);
+            setEarliestOverdueTask(earliestOverdue);
+        } catch (error) {
+            console.log(error);
+            setEarliestOverdueTask(null);
         } finally {
             setLoading(false);
         }
@@ -60,17 +60,16 @@ export default function NextDueTask() {
 
     return (
         <>
-            <div className={styles.nextDueTask}>
-                <h3>Next Due Task:</h3>
+            <div className={styles.overdueTasks}>
+                <h3>Earliest Overdue Task:</h3>
                 {loading ? (
                     <p>Loading...</p>
-                ) : earliestTask ? (
-                    <>
-                        <p>{earliestTask.notes}</p>
-                        <p>Due: {new Date(earliestTask.maintenanceDate).toLocaleDateString()}</p>
-                    </>
+                ) : earliestOverdueTask ? (
+                    <p>
+                        {earliestOverdueTask.notes} - Due: {new Date(earliestOverdueTask.maintenanceDate).toLocaleDateString()}
+                    </p>
                 ) : (
-                    <p>No tasks yet :).</p>
+                    <p>You have no overdue tasks, Hoorayy</p>
                 )}
             </div>
         </>
