@@ -11,16 +11,22 @@ export default function OverdueTasks() {
         if (!tasks || tasks.length === 0) return null;
 
         const now = new Date();
-        const todayString = now.toISOString().split('T')[0];
+
+        // Set "end of today" to 11:59:59 PM
+        const endOfToday = new Date(now);
+        endOfToday.setHours(23, 59, 59, 999);
 
         const overdueTasks = tasks.filter(task => {
             if (!task.maintenanceDate) return false;
 
             const scheduledDate = new Date(task.maintenanceDate);
-            const scheduledDateString = scheduledDate.toISOString().split('T')[0];
 
-            // Task is overdue if scheduled date is before today
-            return scheduledDateString < todayString;
+            // Set scheduled date to end of that day (11:59:59 PM)
+            const endOfScheduledDay = new Date(scheduledDate);
+            endOfScheduledDay.setHours(23, 59, 59, 999);
+
+            // Task is overdue only if the entire day has passed
+            return endOfScheduledDay < now;
         });
 
         if (overdueTasks.length === 0) return null;

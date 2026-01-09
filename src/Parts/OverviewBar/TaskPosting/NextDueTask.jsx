@@ -11,17 +11,19 @@ export default function NextDueTask() {
         if (!tasks || tasks.length === 0) return null;
 
         const now = new Date();
-        const todayString = now.toISOString().split('T')[0];
 
         // Filter tasks that are due today or in the future
         const upcomingTasks = tasks.filter(task => {
             if (!task.maintenanceDate) return false;
 
             const scheduledDate = new Date(task.maintenanceDate);
-            const scheduledDateString = scheduledDate.toISOString().split('T')[0];
 
-            // Include tasks due today or later (not overdue)
-            return scheduledDateString >= todayString;
+            // Set scheduled date to end of that day (11:59:59 PM)
+            const endOfScheduledDay = new Date(scheduledDate);
+            endOfScheduledDay.setHours(23, 59, 59, 999);
+
+            // Include tasks whose day hasn't fully passed yet
+            return endOfScheduledDay >= now;
         });
 
         if (upcomingTasks.length === 0) return null;

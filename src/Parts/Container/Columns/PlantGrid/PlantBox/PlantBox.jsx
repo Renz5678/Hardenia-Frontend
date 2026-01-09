@@ -39,6 +39,8 @@ import Sad from './Status/Sad.png'
 import SunGIF from './Needs/Sun.gif';
 import WaterGIF from './Needs/Water.gif'
 import DeadGIF from './Status/dead status_animation.gif';
+import FertilizerGIF from './Needs/fetilizerNeed.png';
+import ScissorNeed from './Needs/fetilizerNeed.png'
 
 import {useAuth} from '../../../../../contexts/AuthContext.jsx';
 
@@ -109,6 +111,8 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
     const [showStatus, setShowStatus] = useState(false);
     const [needsWater, setNeedsWater] = useState(false);
     const [needsSun, setNeedsSun] = useState(false);
+    const [needsFertilizer, setNeedsFertilizer] = useState(false);
+    const [needsPruning, setNeedsPruning] = useState(false);
     const [isDead, setIsDead] = useState(false);
     const boxRef = useRef(null);
     const detailsRef = useRef(null);
@@ -149,11 +153,13 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
         }
     };
 
-    // Check for water and sun tasks due today or earlier
+    // Check for water, sun, fertilizer, and pruning tasks due today or earlier
     const checkTaskNeeds = (maintenanceList) => {
         if (!maintenanceList || maintenanceList.length === 0) {
             setNeedsWater(false);
             setNeedsSun(false);
+            setNeedsFertilizer(false);
+            setNeedsPruning(false);
             return;
         }
 
@@ -162,6 +168,8 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
 
         let hasWaterTask = false;
         let hasSunTask = false;
+        let hasFertilizerTask = false;
+        let hasPruningTask = false;
 
         maintenanceList.forEach(task => {
             if (!task.maintenanceDate) return;
@@ -177,12 +185,18 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
                     hasWaterTask = true;
                 } else if (task.maintenanceType === 'SUNLIGHT') {
                     hasSunTask = true;
+                } else if (task.maintenanceType === 'FERTILIZING') {
+                    hasFertilizerTask = true;
+                } else if (task.maintenanceType === 'PRUNING') {
+                    hasPruningTask = true;
                 }
             }
         });
 
         setNeedsWater(hasWaterTask);
         setNeedsSun(hasSunTask);
+        setNeedsFertilizer(hasFertilizerTask);
+        setNeedsPruning(hasPruningTask);
     };
 
     // Calculate plant status based on maintenance tasks
@@ -627,6 +641,24 @@ export default function PlantBox({ plant, index, onClick, onToolUse, onDelete, o
                                 src={SunGIF}
                                 alt="needs sun"
                                 className={styles.needsSunGif}
+                            />
+                        )}
+
+                        {/* Show Fertilizer GIF if fertilizer task is due and plant is not dead */}
+                        {needsFertilizer && !isDead && (
+                            <img
+                                src={FertilizerGIF}
+                                alt="needs fertilizer"
+                                className={styles.needsFertilizerGif}
+                            />
+                        )}
+
+                        {/* Show Scissors GIF if pruning task is due and plant is not dead */}
+                        {needsPruning && !isDead && (
+                            <img
+                                src={ScissorNeed}
+                                alt="needs pruning"
+                                className={styles.needsPruningGif}
                             />
                         )}
 
