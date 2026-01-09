@@ -86,5 +86,41 @@
 
 /* Link styling */
 .link {
+    text-decoration: none;
+    color: #e38a31;
+}
 
+.inputGroup input {
+    width: 100%;
+}
+/* Add these to LoginPage.module.css */
+
+.passwordWrapper {
+    position: relative;
+    width: 100%;
+    height: 3.5rem;
+}
+
+.passwordInput {
+    /*padding-right: 45px;*/
+}
+
+.passwordToggle {
+    position: absolute;
+    right: 1px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    color: #666;
+    transition: color 0.2s;
+    width: 2.5rem;
+}
+
+.passwordToggle:hover {
+    color: #333;
 }
