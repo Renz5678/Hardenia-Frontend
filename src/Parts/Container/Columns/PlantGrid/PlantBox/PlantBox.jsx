@@ -40,7 +40,7 @@ import SunGIF from './Needs/Sun.gif';
 import WaterGIF from './Needs/Water.gif'
 import DeadGIF from './Status/dead status_animation.gif';
 import FertilizerGIF from './Needs/fetilizerNeed.png';
-import ScissorNeed from './Needs/fetilizerNeed.png'
+import ScissorNeed from './Needs/scissorNeed.png'
 
 import {useAuth} from '../../../../../contexts/AuthContext.jsx';
 
